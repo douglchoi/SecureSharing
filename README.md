@@ -14,15 +14,15 @@ Proposed Solution / Approach
 
 Wi-Fi peer to peer communication would be established between a new device (android device) wanting to join a group and an existing peer using group association rules. The group association or admission rules would comprise of:
 1. A Short Authenticated Strings (SAS) cryptographic protocol such as Peer Verify Size Verify SAS [1]
-2. Public/private key generation either using a Centralized Group Key Management [3] which will be implemented using a cryptographic library Bouncy Castle
-3. An Out-Of-Band (OOB) channel [1] using Peer Verify Image (of new person using cellphone camera)
+2. Public/private key generation either using a Centralized Group Key Management [3] which will be implemented using a cryptographic library Bouncy Castle and also implement Perfect Forward Security(PFS).
+3. An Out-Of-Band (OOB) channel [1] using Peer Verify Image (of new person using cellphone camera) and also provide addition of new peers using NFC. Ability to store the public key in the contact list.
 4. Group counting or member list to make sure there is a consistent count of members in the group with all peers. [1]
 
 Together these would be used as the basis of establishing the group association for any new device/person. Once association is established all communication would be using SSL and sessions would also have key refreshing and expiration.
 
 Details of Implementation
 
-This application will be developed on the Android platform using Java and the Android SDK. We will also use OpenSSL for secure data transfer, and Java cryptography package (javax.crypto) for key generation. The application will require at least three or more Android devices with a camera for a group connection.
+This application will be developed on the Android platform using Java and the Android SDK. We will also use OpenSSL for secure data transfer, and cryptography package bouncy Castle for key generation. The application will require at least three or more Android devices with a camera for a group connection. Implement Man-In-The-Middle attack.
 
 Timeline and Work Distribution
 
