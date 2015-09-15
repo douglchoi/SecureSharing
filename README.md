@@ -14,7 +14,7 @@ Proposed Solution / Approach
 
 Wi-Fi peer to peer communication would be established between a new device (android device) wanting to join a group and an existing peer using group association rules. The group association or admission rules would comprise of:
 1. A Short Authenticated Strings (SAS) cryptographic protocol such as Peer Verify Size Verify SAS [1]
-2. Public/private key generation either using a Centralized Group Key Management [3] which will be implemented using a cryptographic library such as javax.crypto
+2. Public/private key generation either using a Centralized Group Key Management [3] which will be implemented using a cryptographic library Bouncy Castle
 3. An Out-Of-Band (OOB) channel [1] using Peer Verify Image (of new person using cellphone camera)
 4. Group counting or member list to make sure there is a consistent count of members in the group with all peers. [1]
 
