@@ -1,5 +1,6 @@
 package cecs.secureshare;
 
+import android.content.Intent;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Listen to network for an existing group
+                Intent intent = new Intent(getApplicationContext(), FindPeerActivity.class);
+                startActivity(intent);
             }
         });
 
