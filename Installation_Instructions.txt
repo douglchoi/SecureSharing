@@ -2,6 +2,6 @@
 
 2. Download Android Studio http://developer.android.com/sdk/installing/index.html?pkg=studio (you need Java JDK installed before you install Android Studio)
 
-3. If you don't want to install the app directly on your phone, you need to download the Intel x86 Emulator Accelerator (HAXM installer)
+3. If you don't want to install the app directly on your phone, you need to download the Intel x86 Emulator Accelerator (HAXM installer) SDK Manager -> SDK Tools
 
 4. Run the installer and choose the emulator. Alternatively you can copy the .apk file from the \app\build\outputs\apk folder onto your phone and install the App directly on our phone.
