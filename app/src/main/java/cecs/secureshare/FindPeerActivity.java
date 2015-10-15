@@ -11,8 +11,6 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -75,27 +73,25 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
                 mWifiManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(FindPeerActivity.this, "Connected to " + device.deviceName, Toast.LENGTH_SHORT).show();
+                        FindPeerActivity.this.connectToPeer(device);
                     }
 
                     @Override
-                    public void onFailure(int reason) {
+                    public void onFailure ( int reason){
                         Toast.makeText(FindPeerActivity.this, "Failed to connect to " + device.deviceName + " [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
                     }
-                });
-            }
-        });
-
+                }
+            );
+        }
+    });
 
         // Initiate peer discovery
         mWifiManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
-            public void onSuccess() {
-            }
+            public void onSuccess() {}
 
             @Override
-            public void onFailure(int reasonCode) {
-            }
+            public void onFailure(int reasonCode) {}
         });
     }
 
@@ -107,6 +103,7 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+
         if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // request available peers from the wifi p2p manager. This is an
             // asynchronous call and the calling activity is notified with a
@@ -143,25 +140,14 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
         unregisterReceiver(mReceiver);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_find_peer, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    /**
+     * Connect to a peer
+     * @param device - the device to connect to
+     */
+    public void connectToPeer(final WifiP2pDevice device) {
+        // send to camera
+        Intent intent = new Intent(this, SendImageActivity.class);
+        intent.putExtra("deviceAddress", device.deviceAddress);
+        startActivity(intent);
     }
 }
