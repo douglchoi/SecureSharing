@@ -37,10 +37,13 @@
             android:name=".FindPeerActivity"
             android:label="@string/title_activity_find_peer" >
         </activity>
-        <activity
-            android:name=".SendImageActivity"
-            android:label="@string/title_activity_send_image" >
-        </activity>
+
+        <!-- Handles sending files -->
+        <service
+            android:name=".connector.FileTransferService"
+            android:exported="false">
+        </service>
+
     </application>
 
 </manifest>

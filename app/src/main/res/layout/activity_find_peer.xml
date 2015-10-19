@@ -13,4 +13,13 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+
+    <fragment
+        android:name="cecs.secureshare.SendImageFragment"
+        android:id="@+id/fragment_send_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        />
 </RelativeLayout>
