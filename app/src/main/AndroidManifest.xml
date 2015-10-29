@@ -15,9 +15,9 @@
         android:required="true" />
     <uses-permission android:name="android.permission.NFC" />
 
-    <android:uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <android:uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <android:uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +37,13 @@
             android:name=".FindPeerActivity"
             android:label="@string/title_activity_find_peer" >
         </activity>
+
+        <!-- Handles sending files -->
+        <service
+            android:name=".connector.FileTransferService"
+            android:exported="false">
+        </service>
+
     </application>
 
 </manifest>

@@ -4,15 +4,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -36,6 +36,9 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
 
     PeerListAdapter mPeerListAdapter;
     IntentFilter mIntentFilter;
+
+    private WifiP2pInfo wifiP2pInfo;
+    private boolean transferring = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,27 +78,25 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
                 mWifiManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(FindPeerActivity.this, "Connected to " + device.deviceName, Toast.LENGTH_SHORT).show();
+                        // The devices are connected
                     }
 
                     @Override
-                    public void onFailure(int reason) {
+                    public void onFailure ( int reason){
                         Toast.makeText(FindPeerActivity.this, "Failed to connect to " + device.deviceName + " [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
                     }
-                });
-            }
-        });
-
+                }
+            );
+        }
+    });
 
         // Initiate peer discovery
         mWifiManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
-            public void onSuccess() {
-            }
+            public void onSuccess() {}
 
             @Override
-            public void onFailure(int reasonCode) {
-            }
+            public void onFailure(int reasonCode) {}
         });
     }
 
@@ -107,13 +108,42 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+
         if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            // request available peers from the wifi p2p manager. This is an
+            // request available peers from the wifi p2p manager. This is an++
             // asynchronous call and the calling activity is notified with a
             // callback on PeerListListener.onPeersAvailable()
             if (mWifiManager != null) {
                 mWifiManager.requestPeers(mChannel, this);
             }
+        } else if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
+            // Update ui to show the wifip2p status
+            int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
+            if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
+                // P2p wifi is enabled...
+            } else {
+                // P2p wifi is disabled...
+                resetViews();
+            }
+        } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
+            if (mWifiManager == null) {
+                return;
+            }
+
+            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+            if (networkInfo.isConnected()) {
+                // devices are connected
+                SendImageFragment fragment = (SendImageFragment) getFragmentManager().findFragmentById(R.id.fragment_send_image);
+                mWifiManager.requestConnectionInfo(mChannel, fragment);
+            } else {
+                // devices were disconnected
+                mWifiManager.removeGroup(mChannel, null);
+                resetViews();
+            }
+        } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+            // Get the information about this device
+            WifiP2pDevice myDevice = (WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
         }
     }
 
@@ -143,25 +173,11 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
         unregisterReceiver(mReceiver);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_find_peer, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    /**
+     * Hides parts of the activity if not connected
+     */
+    public void resetViews() {
+        SendImageFragment sendImageFragment = (SendImageFragment) getFragmentManager().findFragmentById(R.id.fragment_send_image);
+        sendImageFragment.resetView();
     }
 }
