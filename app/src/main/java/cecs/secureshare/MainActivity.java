@@ -38,6 +38,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        final Button joinGroupNFCButton = (Button) findViewById(R.id.join_nfc_group_button);
+        joinGroupNFCButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Listen to network for an existing group
+                Intent intent = new Intent(getApplicationContext(), NFCPeerActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     @Override

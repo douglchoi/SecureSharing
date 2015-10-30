@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cecs.secureshare" > <!-- Minimum version required for NFC support -->
     <uses-sdk android:minSdkVersion="10" />
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
     <!-- Enable connectivity to other devices -->
     <uses-permission
@@ -39,6 +41,10 @@
         </activity>
         <activity
             android:name=".SendImageActivity"
+            android:label="@string/title_activity_send_image" >
+        </activity>
+        <activity
+            android:name=".NFCPeerActivity"
             android:label="@string/title_activity_send_image" >
         </activity>
     </application>
