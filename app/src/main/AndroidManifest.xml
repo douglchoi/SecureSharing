@@ -39,7 +39,6 @@
             android:name=".FindPeerActivity"
             android:label="@string/title_activity_find_peer" >
         </activity>
-<<<<<<< HEAD
         <activity
             android:name=".SendImageActivity"
             android:label="@string/title_activity_send_image" >
