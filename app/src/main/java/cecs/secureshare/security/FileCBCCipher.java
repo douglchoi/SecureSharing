@@ -87,7 +87,18 @@ public class FileCBCCipher {
         }
     }
 
-    public void process(File file, FileOutputStream fos)
+    /**
+     * In Encrypt Mode, takes a raw file and outputs encrypted file into OutputStream
+     * In Decrypt Mode, takes an encrypted file and outputs raw file int OutputStream
+     * @param file
+     * @param fos
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws ShortBufferException
+     * @throws BadPaddingException
+     * @throws IllegalBlockSizeException
+     */
+    public void process(File file, OutputStream fos)
             throws FileNotFoundException,
                     IOException,
                     ShortBufferException,
@@ -141,6 +152,15 @@ public class FileCBCCipher {
         fis.close();
     }
 
+    /**
+     * Encrypt an encrypted file input stream (fis) and output the raw file to output stream (fos)
+     * @param fis
+     * @param fos
+     * @throws IOException
+     * @throws ShortBufferException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
     public void decrypt(InputStream fis, OutputStream fos)
             throws IOException,
             ShortBufferException,
