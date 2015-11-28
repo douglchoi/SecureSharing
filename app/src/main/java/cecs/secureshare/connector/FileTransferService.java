@@ -71,8 +71,7 @@ public class FileTransferService extends IntentService {
                 socket.connect((new InetSocketAddress(host, HOST_PORT)), SOCKET_TIMEOUT);
 
                 // TESTING
-                DHKeyGenerator generator = new DHKeyGenerator();
-                KeyPair pair = generator.generateKeys();
+                KeyPair pair = DHKeyGenerator.generateKeys();
                 PublicKey pkey = pair.getPublic();
                 PrivateKey skey = pair.getPrivate();
                 FileCBCCipher encryptCipher = new FileCBCCipher(pkey, FileCBCCipher.CipherMode.Encrypt);

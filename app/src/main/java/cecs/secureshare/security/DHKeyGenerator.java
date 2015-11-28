@@ -29,34 +29,16 @@ import javax.crypto.spec.DHParameterSpec;
  */
 public class DHKeyGenerator {
 
-    public KeyPair generateKeys()
-    {
-        Log.d("Info", "Generating keys");
+    public static KeyPair generateKeys() {
         try {
-            //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
-            ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
-            KeyPairGenerator kpg = null;
-            try {
-                kpg = KeyPairGenerator.getInstance("ECDH","SC");
-            } catch (NoSuchAlgorithmException e) {
-                Log.d("Info", e.toString());
-                e.printStackTrace();
-            } catch (NoSuchProviderException e) {
-                Log.d("Info", e.toString());
-                e.printStackTrace();
-            }
-            try {
-                kpg.initialize(ecParamSpec);
-            } catch (InvalidAlgorithmParameterException e) {
-                Log.d("Info", e.toString());
-                e.printStackTrace();
-            }
-            KeyPair kpair=kpg.generateKeyPair();
-            return kpair;
-            /*pkey=kpair.getPublic();
-            skey=kpair.getPrivate();*/
+            ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
+            //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDSA","SC");
+            kpg.initialize(ecParamSpec);
+            return kpg.generateKeyPair();
+
         }catch(Exception e){
-            Log.d("Info", e.toString());
+            Log.e("Keygen", e.toString());
             e.printStackTrace();
         }
         return null;

@@ -36,7 +36,6 @@ public class FileCBCCipher {
 
     public static enum CipherMode { Encrypt, Decrypt };
 
-    // ----------------------------------------------------------------
 
     private final Key key;   // encryption (public key) / decryption (private key)
     private final byte[] IV;    // initialization vector for CBC
