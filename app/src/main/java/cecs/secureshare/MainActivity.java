@@ -8,11 +8,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import cecs.secureshare.security.*;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Initialize the security manager
+        CyptoManager.initialize();
+
         setContentView(R.layout.activity_main);
 
         // Attach click listeners to main menu buttons

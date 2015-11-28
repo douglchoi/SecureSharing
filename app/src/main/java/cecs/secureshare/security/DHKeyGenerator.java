@@ -1,5 +1,7 @@
 package cecs.secureshare.security;
 
+import android.util.Log;
+
 import org.spongycastle.jce.provider.BouncyCastleProvider;
 
 import java.math.BigInteger;
@@ -26,14 +28,41 @@ import javax.crypto.spec.DHParameterSpec;
  * Created by Douglas on 11/15/2015.
  */
 public class DHKeyGenerator {
-    PublicKey pkey;
-    PrivateKey skey;
 
-    // Register BouncyCastle for use
-    static {
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+    public KeyPair generateKeys()
+    {
+        Log.d("Info", "Generating keys");
+        try {
+            //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
+            ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
+            KeyPairGenerator kpg = null;
+            try {
+                kpg = KeyPairGenerator.getInstance("ECDH","SC");
+            } catch (NoSuchAlgorithmException e) {
+                Log.d("Info", e.toString());
+                e.printStackTrace();
+            } catch (NoSuchProviderException e) {
+                Log.d("Info", e.toString());
+                e.printStackTrace();
+            }
+            try {
+                kpg.initialize(ecParamSpec);
+            } catch (InvalidAlgorithmParameterException e) {
+                Log.d("Info", e.toString());
+                e.printStackTrace();
+            }
+            KeyPair kpair=kpg.generateKeyPair();
+            return kpair;
+            /*pkey=kpair.getPublic();
+            skey=kpair.getPrivate();*/
+        }catch(Exception e){
+            Log.d("Info", e.toString());
+            e.printStackTrace();
+        }
+        return null;
     }
 
+    /*
     public DHKeyGenerator()
             throws NoSuchAlgorithmException,
                 InvalidParameterSpecException,
@@ -65,33 +94,6 @@ public class DHKeyGenerator {
         PublicKey publicKey = kp2.getPublic();
         PrivateKey privateKey = kp2.getPrivate();
     }
+*/
 
-    public void GenerateKeys()
-    {
-        try {
-            //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
-            ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
-            KeyPairGenerator kpg = null;
-            try {
-                kpg = KeyPairGenerator.getInstance("ECDH","SC");
-            } catch (NoSuchAlgorithmException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (NoSuchProviderException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            try {
-                kpg.initialize(ecParamSpec);
-            } catch (InvalidAlgorithmParameterException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            KeyPair kpair=kpg.generateKeyPair();
-
-            pkey=kpair.getPublic();
-            skey=kpair.getPrivate();
-
-        }catch(Exception e){e.printStackTrace();}
-    }
 }
