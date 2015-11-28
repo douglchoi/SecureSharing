@@ -10,9 +10,11 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.KeyAgreement;
@@ -24,6 +26,8 @@ import javax.crypto.spec.DHParameterSpec;
  * Created by Douglas on 11/15/2015.
  */
 public class DHKeyGenerator {
+    PublicKey pkey;
+    PrivateKey skey;
 
     // Register BouncyCastle for use
     static {
@@ -62,4 +66,32 @@ public class DHKeyGenerator {
         PrivateKey privateKey = kp2.getPrivate();
     }
 
+    public void GenerateKeys()
+    {
+        try {
+            //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
+            ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
+            KeyPairGenerator kpg = null;
+            try {
+                kpg = KeyPairGenerator.getInstance("ECDH","SC");
+            } catch (NoSuchAlgorithmException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (NoSuchProviderException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                kpg.initialize(ecParamSpec);
+            } catch (InvalidAlgorithmParameterException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            KeyPair kpair=kpg.generateKeyPair();
+
+            pkey=kpair.getPublic();
+            skey=kpair.getPrivate();
+
+        }catch(Exception e){e.printStackTrace();}
+    }
 }
