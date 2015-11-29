@@ -5,34 +5,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.ShortBufferException;
-
-import cecs.secureshare.R;
-import cecs.secureshare.security.DHKeyGenerator;
-import cecs.secureshare.security.FileCBCCipher;
 
 /**
  * Handles sending the file
@@ -54,8 +34,6 @@ public class FileTransferService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         Context context = getApplicationContext();
 
-        String storageDir = Environment.getExternalStorageDirectory() + "/"  + context.getPackageName() + "/secureshare-";
-
         if (intent.getAction().equals(ACTION_SEND_FILE)) {
 
             // location to write to
@@ -70,30 +48,11 @@ public class FileTransferService extends IntentService {
                 socket.bind(null);
                 socket.connect((new InetSocketAddress(host, HOST_PORT)), SOCKET_TIMEOUT);
 
-                // TESTING
-                KeyPair pair = DHKeyGenerator.generateKeys();
-                PublicKey pkey = pair.getPublic();
-                PrivateKey skey = pair.getPrivate();
-                FileCBCCipher encryptCipher = new FileCBCCipher(pkey, FileCBCCipher.CipherMode.Encrypt);
-                FileCBCCipher decryptCipher = new FileCBCCipher(skey, FileCBCCipher.CipherMode.Decrypt);
-
                 OutputStream stream = socket.getOutputStream();
                 ContentResolver cr = context.getContentResolver();
                 InputStream is = null;
                 try {
                     is = cr.openInputStream(Uri.parse(fileUri));
-
-                    // TESTING Encryption
-                    File cipherFile = new File(storageDir + "cipherFile.jpg");
-                    FileOutputStream cipherTextFos = new FileOutputStream(cipherFile);
-                    encryptCipher.process(is, cipherTextFos);
-
-                    // TESTING Decryption
-                    File decryptedFile = new File(storageDir + "decryptedFile.jpg");
-                    FileOutputStream decryptFos = new FileOutputStream(decryptedFile);
-                    decryptCipher.process(new FileInputStream(cipherFile), decryptFos);
-
-
                 } catch (FileNotFoundException e) {
                     Log.d("Info", e.toString());
                 }

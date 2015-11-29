@@ -8,16 +8,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import cecs.secureshare.security.*;
+import java.security.KeyPair;
 
+import cecs.secureshare.security.CryptoManager;
+
+/**
+ * Entry point
+ */
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize the security manager
-        CyptoManager.initialize();
+        // TESTING
+        //KeyPair masterKeyPair = CryptoManager.getInstance().getMasterKeyPair();
 
         setContentView(R.layout.activity_main);
 

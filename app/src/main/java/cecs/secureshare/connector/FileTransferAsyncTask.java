@@ -1,27 +1,18 @@
 package cecs.secureshare.connector;
 
-import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import cecs.secureshare.R;
 
 /**
  * A simple server socket that accepts incoming connections and writes some

@@ -2,25 +2,9 @@ package cecs.secureshare.security;
 
 import android.util.Log;
 
-import org.spongycastle.jce.provider.BouncyCastleProvider;
-
-import java.math.BigInteger;
-import java.security.AlgorithmParameterGenerator;
-import java.security.AlgorithmParameters;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
-import java.security.spec.InvalidParameterSpecException;
-
-import javax.crypto.KeyAgreement;
-import javax.crypto.spec.DHParameterSpec;
 
 /**
  * Uses Diffe-Hellman to generate public-private keys for a session. This is used for encrypting
@@ -33,7 +17,7 @@ public class DHKeyGenerator {
         try {
             ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
             //ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("prime192v1");
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDSA","SC");
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH","SC");
             kpg.initialize(ecParamSpec);
             return kpg.generateKeyPair();
 
