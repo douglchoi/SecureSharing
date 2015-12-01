@@ -8,9 +8,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 
 import cecs.secureshare.security.CryptoManager;
+import cecs.secureshare.security.PGPCipher;
+import cecs.secureshare.security.PGPKeyManager;
 
 /**
  * Entry point
@@ -21,8 +28,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TESTING
-        //KeyPair masterKeyPair = CryptoManager.getInstance().getMasterKeyPair();
+        CryptoManager.getInstance().initialize(true);
+
+        // -------------------------- TESTING ----------------------------
+        KeyPair masterKeyPair = CryptoManager.getInstance().getMasterKeyPair();
+
+        String secretString = "This is a secret string.";
+        InputStream plaintext = new ByteArrayInputStream(secretString.getBytes());
+        OutputStream ciphertext = new ByteArrayOutputStream();
+        // ---------------------------------------------------------------
 
         setContentView(R.layout.activity_main);
 

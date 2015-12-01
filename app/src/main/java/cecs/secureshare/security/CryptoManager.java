@@ -2,7 +2,12 @@ package cecs.secureshare.security;
 
 import android.util.Log;
 
+import org.spongycastle.openpgp.PGPKeyPair;
+
+import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Security;
 
 /**
@@ -16,6 +21,26 @@ public class CryptoManager {
     private static CryptoManager instance = new CryptoManager();
     private KeyPair masterKeyPair;
 
+    /**
+     * Initialization sets BouncyCastle as the security provider, and fetches master keys.
+     * @param refreshKeys - deletes existing keys if true
+     */
+    public void initialize(boolean refreshKeys) {
+        try {
+            Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+        } catch (Exception e) {
+            Log.d(TAG, e.getLocalizedMessage(), e);
+        }
+
+        if (refreshKeys) {
+            PGPKeyManager.clearMasterKeys();
+        }
+        masterKeyPair = PGPKeyManager.initializeMasterKeyPair();
+    }
+
+    /**
+     * @return singleton instance
+     */
     public static CryptoManager getInstance() {
         return instance;
     }
@@ -26,19 +51,6 @@ public class CryptoManager {
     public KeyPair getMasterKeyPair() {
         return masterKeyPair;
     }
-    // --------------------------------------------------------------------------------------------
 
-    /**
-     * Initialization sets BouncyCastle as the security provider, and fetches master keys.
-     */
-    private CryptoManager() {
-        try {
-            Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
-        } catch (Exception e) {
-            Log.d(TAG, e.getLocalizedMessage(), e);
-        }
-
-        masterKeyPair = PGPKeyManager.initializeMasterKeyPair();
-    }
-
+    private CryptoManager() {}
 }

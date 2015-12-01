@@ -47,6 +47,19 @@ public class PGPKeyManager {
     private static final String CERT_O = "cecs";
 
     /**
+     * For debugging. Clears out the master keys to be regenerated.
+     */
+    public static void clearMasterKeys() {
+        try {
+            KeyStore ks = KeyStore.getInstance(KEY_STORE_TYPE);
+            ks.load(null);
+            ks.deleteEntry(PRIVATE_KEY_ALIAS);
+        } catch (Exception e) {
+            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
+        }
+    }
+
+    /**
      * Returns an existing master keypair in android KeyStore. If not, it will create it
      * and store it in KeyStore.
      */
@@ -94,13 +107,14 @@ public class PGPKeyManager {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    private void storeMasterKeyInKeyStore(PrivateKey privateKey, Certificate certificate) throws KeyStoreException,
-            CertificateException,
-            NoSuchAlgorithmException,
-            IOException {
+    private void storeMasterKeyInKeyStore(PrivateKey privateKey, Certificate certificate)
+            throws KeyStoreException,
+                    CertificateException,
+                    NoSuchAlgorithmException,
+                    IOException {
         KeyStore ks = KeyStore.getInstance(KEY_STORE_TYPE);
         ks.load(null);
-        ks.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, null, new Certificate[] { certificate });
+        ks.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, null, new Certificate[]{certificate});
     }
 
     /**
@@ -113,8 +127,9 @@ public class PGPKeyManager {
      * @throws IOException
      * @throws UnrecoverableEntryException
      */
-    private KeyPair loadMasterKeyFromKeyStore() throws KeyStoreException,
-            CertificateException,
+    private KeyPair loadMasterKeyFromKeyStore()
+            throws KeyStoreException,
+                CertificateException,
             NoSuchAlgorithmException,
             IOException,
             UnrecoverableEntryException,
@@ -148,10 +163,10 @@ public class PGPKeyManager {
      * @throws NoSuchProviderException
      * @throws NoSuchAlgorithmException
      */
-    private KeyPair generateMasterKeys() throws
-            NoSuchProviderException,
-            NoSuchAlgorithmException,
-            InvalidAlgorithmParameterException {
+    private KeyPair generateMasterKeys()
+            throws NoSuchProviderException,
+                    NoSuchAlgorithmException,
+                    InvalidAlgorithmParameterException {
         // Create the master key
         ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime192v1");
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH", "SC");
@@ -167,7 +182,9 @@ public class PGPKeyManager {
      * @throws CertificateException
      */
     private static X509Certificate createCertificate(KeyPair keyPair)
-            throws OperatorCreationException, CertificateException {
+            throws OperatorCreationException,
+                    CertificateException,
+                    IOException {
         X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
         nameBuilder.addRDN(BCStyle.OU, CERT_OU);
         nameBuilder.addRDN(BCStyle.O, CERT_O);
