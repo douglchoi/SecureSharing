@@ -22,8 +22,6 @@ public class NFCPeerActivity extends Activity implements CreateNdefMessageCallba
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_peer);
-        textView.setText("Searching for NFC enabled peers...");
-        Toast.makeText(NFCPeerActivity.this, "Searching for NFC enabled peers...", Toast.LENGTH_SHORT).show();
         TextView textView = (TextView) findViewById(R.id.peer_list_msg);
         // Check for available NFC Adapter
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
