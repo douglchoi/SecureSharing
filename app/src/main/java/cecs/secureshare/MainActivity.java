@@ -45,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
         hostGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Host a group
+                Intent intent = new Intent(getApplicationContext(), GroupViewActivity.class);
+                startActivity(intent);
             }
         });
 

@@ -2,8 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cecs.secureshare" > <!-- Minimum version required for NFC support -->
     <uses-sdk android:minSdkVersion="10" />
+
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
 
     <!-- Enable connectivity to other devices -->
     <uses-permission
@@ -16,7 +20,6 @@
         android:name="android.permission.INTERNET"
         android:required="true" />
     <uses-permission android:name="android.permission.NFC" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -52,10 +55,13 @@
         <!-- Handles sending files -->
         <service
             android:name=".connector.FileTransferService"
-            android:exported="false">
+            android:exported="false" >
         </service>
-
 >>>>>>> origin/dev
+        <activity
+            android:name=".GroupViewActivity"
+            android:label="@string/title_activity_group_view" >
+        </activity>
     </application>
 
 </manifest>

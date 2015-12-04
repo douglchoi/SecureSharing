@@ -85,10 +85,9 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
                     public void onFailure ( int reason){
                         Toast.makeText(FindPeerActivity.this, "Failed to connect to " + device.deviceName + " [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
                     }
-                }
-            );
-        }
-    });
+                });
+            }
+        });
 
         // Initiate peer discovery
         mWifiManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
