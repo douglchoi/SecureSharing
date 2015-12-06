@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import java.util.Collection;
 import cecs.secureshare.adapters.GroupMemberListAdapter;
 import cecs.secureshare.connector.BroadcastReceiveListener;
 import cecs.secureshare.connector.WiFiDirectBroadcastReceiver;
+import cecs.secureshare.connector.client.FileTransferService;
 import cecs.secureshare.connector.client.JoinGroupService;
 import cecs.secureshare.connector.host.AcceptGroupMemberAsyncTask;
 import cecs.secureshare.groupmanagement.GroupManager;
@@ -32,6 +35,8 @@ import cecs.secureshare.groupmanagement.GroupMember;
  */
 public class GroupViewActivity extends AppCompatActivity implements BroadcastReceiveListener,
         WifiP2pManager.ConnectionInfoListener, View.OnClickListener {
+
+    private static final int SEND_FILE_REQUEST = 2;
 
     private SendFileFragment sendFileFragment;
     private GroupMemberListAdapter mGroupMemberListAdapter;
@@ -169,10 +174,37 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.share_file_button:
-                sendFileFragment.getView().setVisibility(View.VISIBLE);
+                // code for the device connecting to the group owner
+                // Opens file browser. Then calls onActivityResult to send selected file to owner
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("file/*");
+                startActivityForResult(intent, SEND_FILE_REQUEST);
+
                 break;
             case R.id.disconnect_button:
                 break;
+        }
+    }
+
+    /**
+     * OnActivityResult is returned after the file is chosen
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SEND_FILE_REQUEST ) {
+            Toast.makeText(GroupViewActivity.this, "Sending image...", Toast.LENGTH_SHORT).show();
+
+            // get the image
+            Uri imageUri = data.getData();
+
+            // TODO: 1. encrypt file in imageUri
+            //       2. send file to host?
+
+
+            Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
         }
     }
 

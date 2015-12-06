@@ -37,25 +37,13 @@ public class AcceptGroupMemberAsyncTask extends AsyncTask<Void, Void, Integer> {
         hostActive = true;
         try {
             while(isHostActive()) {
+                // New client wants to connect
                 ServerSocket serverSocket = new ServerSocket(JoinGroupService.HOST_PORT);
                 Socket clientSocket = serverSocket.accept();
 
                 // initialize a new thread to handle communication with the client
-                ClientConnectionThread clientConn = new ClientConnectionThread(clientSocket);
+                ClientConnectionThread clientConn = new ClientConnectionThread(clientSocket, serverSocket, groupViewActivity);
                 clientConn.start();
-
-                // add it to the global list of group members
-                GroupMember groupMember = new GroupMember(clientConn);
-                groupMember.setName("Group member needs to send me the name");
-                GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
-
-                // update the UI
-                groupViewActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupViewActivity.updateView();
-                    }
-                });
             }
         } catch (IOException e){
             Log.d(TAG, e.getLocalizedMessage(), e);

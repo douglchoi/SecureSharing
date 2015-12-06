@@ -47,10 +47,9 @@ public class MainActivity extends AppCompatActivity {
         ByteArrayOutputStream secret = cryptManager.Decrypt(cipherText, cryptManager.sk, cryptManager.pass);
         /* End Sample */
 
-        final Button hostGroupButton = (Button) findViewById(R.id.host_group_button);
-        hostGroupButton.setText(new String(secret.toByteArray()));
 
         // Attach click listeners to main menu buttons
+        final Button hostGroupButton = (Button) findViewById(R.id.host_group_button);
         hostGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
