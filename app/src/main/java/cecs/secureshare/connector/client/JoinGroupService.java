@@ -23,7 +23,7 @@ public class JoinGroupService extends IntentService {
     public static final int SOCKET_TIMEOUT = 5000;
 
     public static final String SEND_FILE_ACTION = "send_file_action";
-    public static final String RECIEVE_FILE_ACTION = "receive_file_action";
+    public static final String RECEIVE_FILE_ACTION = "receive_file_action";
 
     private boolean running;
     private Socket socket;
@@ -39,7 +39,7 @@ public class JoinGroupService extends IntentService {
         if (action.equals(SEND_FILE_ACTION)) {
             // client wants to send a file
 
-        } else if (action.equals(RECIEVE_FILE_ACTION)) {
+        } else if (action.equals(RECEIVE_FILE_ACTION)) {
             // client wants to receive file
 
         }

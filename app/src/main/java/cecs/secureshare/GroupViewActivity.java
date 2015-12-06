@@ -174,12 +174,11 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.share_file_button:
-                // code for the device connecting to the group owner
                 // Opens file browser. Then calls onActivityResult to send selected file to owner
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("file/*");
-                startActivityForResult(intent, SEND_FILE_REQUEST);
-
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select file"), SEND_FILE_REQUEST);
                 break;
             case R.id.disconnect_button:
                 break;
