@@ -38,7 +38,7 @@ public class GroupManager {
 
     /**
      * Removes all members from the group
-     */
+    */
     public void clearGroup() {
         groupMembers.clear();
     }

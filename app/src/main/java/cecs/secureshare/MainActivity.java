@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
 
         /* Sample code to call encrypt, decrypt and access keys*/
         CryptoManager cryptManager = new CryptoManager();
-        String secretString = "THIS IS SECRET";
+        /*String secretString = "THIS IS SECRET";
         ByteArrayOutputStream cipherText = cryptManager.Encrypt(new ByteArrayInputStream(secretString.getBytes()), "uniqueId");
-        ByteArrayOutputStream secret = cryptManager.Decrypt(cipherText, cryptManager.sk, cryptManager.pass);
+        ByteArrayOutputStream secret = cryptManager.Decrypt(cipherText, cryptManager.sk, cryptManager.pass);*/
         /* End Sample */
 
 

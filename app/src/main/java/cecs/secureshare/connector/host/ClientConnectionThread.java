@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.security.acl.Group;
 
 import cecs.secureshare.GroupViewActivity;
+import cecs.secureshare.connector.messages.Message;
+import cecs.secureshare.connector.messages.SendInfoMessage;
 import cecs.secureshare.groupmanagement.GroupManager;
 import cecs.secureshare.groupmanagement.GroupMember;
 
@@ -51,6 +53,7 @@ public class ClientConnectionThread extends Thread {
 
             // accept client information
             String clientInfo = readFromClient();
+            SendInfoMessage sendInfoMessage = Message.deserialize(clientInfo, SendInfoMessage.class);
 
             // add it to the global list of group members
             GroupMember groupMember = new GroupMember(this);
@@ -74,6 +77,14 @@ public class ClientConnectionThread extends Thread {
         }
     }
 
+    /**
+     * TODO: send a file to all peers in the group
+     */
+    public void sendFileToPeers() {
+
+
+    }
+    
     /**
      * This is a blocking I/O
      * @return

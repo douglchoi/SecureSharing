@@ -4,12 +4,15 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.util.Printer;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+
+import cecs.secureshare.connector.messages.SendInfoMessage;
 
 /**
  * Service for a client to connect to the group host.
@@ -28,18 +31,24 @@ public class JoinGroupService extends IntentService {
     private boolean running;
     private Socket socket;
 
+    private PrintWriter out;
+    private BufferedReader in;
+
+
     public JoinGroupService() {
         super("JoinGroupService");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
         String action = intent.getAction();
 
-        if (action.equals(SEND_FILE_ACTION)) {
+        if (SEND_FILE_ACTION.equals(action)) {
             // client wants to send a file
 
-        } else if (action.equals(RECEIVE_FILE_ACTION)) {
+        } else if (RECEIVE_FILE_ACTION.equals(action)) {
             // client wants to receive file
 
         }
@@ -57,11 +66,15 @@ public class JoinGroupService extends IntentService {
         try {
             socket.bind(null);
             socket.connect((new InetSocketAddress(hostDeviceAddress, HOST_PORT)), SOCKET_TIMEOUT);
-            Log.d(TAG, "Connected to host: " + hostDeviceAddress);
+
+            out = new PrintWriter(socket.getOutputStream());
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // send my info
-            PrintWriter pw = new PrintWriter(socket.getOutputStream());
-            pw.write("message");
+            SendInfoMessage message = new SendInfoMessage("My name", null);
+            String serializedMessage = message.toSerializedString();
+            out.write(serializedMessage);
+            out.flush();
 
             running = true;
             while(running) {
