@@ -193,17 +193,19 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
      */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == SEND_FILE_REQUEST ) {
-            Toast.makeText(GroupViewActivity.this, "Sending image...", Toast.LENGTH_SHORT).show();
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SEND_FILE_REQUEST) {
+                Toast.makeText(GroupViewActivity.this, "Sending image...", Toast.LENGTH_SHORT).show();
 
-            // get the image
-            Uri imageUri = data.getData();
+                // get the image
+                Uri imageUri = data.getData();
 
-            // TODO: 1. encrypt file in imageUri
-            //       2. send file to host?
+                // TODO: 1. encrypt file in imageUri
+                //       2. send file to host?
 
 
-            Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
