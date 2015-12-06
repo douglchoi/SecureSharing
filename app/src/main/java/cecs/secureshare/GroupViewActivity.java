@@ -1,6 +1,7 @@
 package cecs.secureshare;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -12,12 +13,20 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -29,6 +38,8 @@ import cecs.secureshare.connector.client.JoinGroupService;
 import cecs.secureshare.connector.host.AcceptGroupMemberAsyncTask;
 import cecs.secureshare.groupmanagement.GroupManager;
 import cecs.secureshare.groupmanagement.GroupMember;
+import cecs.secureshare.groupmanagement.PeerInfo;
+import cecs.secureshare.security.CryptoManager;
 
 /**
  * This is the view where all members of the group can see each other
@@ -203,9 +214,28 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
                 // TODO: 1. encrypt file in imageUri
                 //       2. send file to host?
 
-
+                try {
+                InputStream fis;
+                ContentResolver cr = getContentResolver();
+                fis = cr.openInputStream(imageUri);
+                /*ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                byte[] buf = new byte[1024];
+                    int totalBytes = 0;
+                    for (int readNum; (readNum = fis.read(buf)) != -1;) {
+                        bos.write(buf, 0, readNum);
+                        totalBytes += readNum;
+                    }
+                byte[] bytes = bos.toByteArray();*/
+                CryptoManager cryptManager = new CryptoManager();
+                ByteArrayOutputStream cipherText = cryptManager.Encrypt(fis, "uniqueId");
+                    ByteArrayInputStream is = new ByteArrayInputStream(cipherText.toByteArray());
+                    PeerInfo.getInstance().getCurrentConn().sendFileToHost(is);
                 Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                Log.d(e.getMessage(), e.getLocalizedMessage(), e);
             }
+
+        }
         }
     }
 

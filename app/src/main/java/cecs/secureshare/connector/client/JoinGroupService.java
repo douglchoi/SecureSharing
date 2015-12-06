@@ -1,18 +1,25 @@
 package cecs.secureshare.connector.client;
 
 import android.app.IntentService;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import cecs.secureshare.connector.host.FileTransferAsyncTask;
 import cecs.secureshare.connector.messages.SendInfoMessage;
+import cecs.secureshare.groupmanagement.PeerInfo;
 
 /**
  * Service for a client to connect to the group host.
@@ -33,7 +40,6 @@ public class JoinGroupService extends IntentService {
 
     private PrintWriter out;
     private BufferedReader in;
-
 
     public JoinGroupService() {
         super("JoinGroupService");
@@ -63,6 +69,8 @@ public class JoinGroupService extends IntentService {
         String hostDeviceAddress = intent.getExtras().getString(HOST_DEVICE_ADDRESS);
 
         socket = new Socket();
+        PeerInfo.getInstance().setCurrentConn(this);
+
         try {
             socket.bind(null);
             socket.connect((new InetSocketAddress(hostDeviceAddress, HOST_PORT)), SOCKET_TIMEOUT);
@@ -75,16 +83,20 @@ public class JoinGroupService extends IntentService {
             String serializedMessage = message.toSerializedString();
             out.write(serializedMessage);
             out.flush();
-
-            running = true;
-            while(running) {
-
-            }
-
         } catch (IOException e) {
             Log.d(TAG, e.getLocalizedMessage(), e);
         } finally {
             // Do something?
+        }
+    }
+
+    public void sendFileToHost(InputStream is)
+    {
+        try {
+            OutputStream stream = socket.getOutputStream();
+            FileTransferAsyncTask.copyFile(is, stream);
+        } catch (IOException e) {
+
         }
     }
 }

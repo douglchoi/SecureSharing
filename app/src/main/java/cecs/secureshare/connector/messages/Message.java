@@ -35,16 +35,16 @@ public abstract class Message implements Serializable {
      * @return
      */
     public String toSerializedString() {
-        try {
-            ByteArrayOutputStream bo = new ByteArrayOutputStream();
-            ObjectOutputStream so = new ObjectOutputStream(bo);
-            so.writeObject(this);
-            so.flush();
-            return bo.toString();
-        } catch (IOException e) {
-            Log.d(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
+            try {
+                ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                ObjectOutputStream so = new ObjectOutputStream(bo);
+                so.writeObject(this);
+                so.flush();
+                return bo.toString();
+            } catch (IOException e) {
+                Log.d(TAG, e.getLocalizedMessage(), e);
+                return null;
+            }
     }
 
     /**
