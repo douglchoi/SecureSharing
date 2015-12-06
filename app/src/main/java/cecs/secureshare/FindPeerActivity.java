@@ -4,15 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -37,9 +35,6 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
     PeerListAdapter mPeerListAdapter;
     IntentFilter mIntentFilter;
 
-    private WifiP2pInfo wifiP2pInfo;
-    private boolean transferring = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +49,6 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         // Attach the peer list to the ListView adapter
@@ -73,12 +67,15 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
                 WifiP2pConfig config = new WifiP2pConfig();
                 config.deviceAddress = device.deviceAddress;
                 config.wps.setup = WpsInfo.PBC;
+                config.groupOwnerIntent = 0;
 
                 // connect to the device
                 mWifiManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
                         // The devices are connected
+                        Intent intent = new Intent(getApplicationContext(), GroupViewActivity.class);
+                        startActivity(intent);
                     }
 
                     @Override
@@ -122,23 +119,6 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
                 // P2p wifi is enabled...
             } else {
                 // P2p wifi is disabled...
-                resetViews();
-            }
-        } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-            if (mWifiManager == null) {
-                return;
-            }
-
-            NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
-
-            if (networkInfo.isConnected()) {
-                // devices are connected
-                SendImageFragment fragment = (SendImageFragment) getFragmentManager().findFragmentById(R.id.fragment_send_image);
-                mWifiManager.requestConnectionInfo(mChannel, fragment);
-            } else {
-                // devices were disconnected
-                mWifiManager.removeGroup(mChannel, null);
-                resetViews();
             }
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Get the information about this device
@@ -170,13 +150,5 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
         super.onPause();
         // disable the receive when app is put into background
         unregisterReceiver(mReceiver);
-    }
-
-    /**
-     * Hides parts of the activity if not connected
-     */
-    public void resetViews() {
-        SendImageFragment sendImageFragment = (SendImageFragment) getFragmentManager().findFragmentById(R.id.fragment_send_image);
-        sendImageFragment.resetView();
     }
 }

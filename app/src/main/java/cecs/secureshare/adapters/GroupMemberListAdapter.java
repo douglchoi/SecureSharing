@@ -11,16 +11,16 @@ import android.widget.TextView;
 import java.util.List;
 
 import cecs.secureshare.R;
-import cecs.secureshare.security.GroupMember;
+import cecs.secureshare.groupmanagement.GroupMember;
 
 /**
  * Created by Douglas on 12/3/2015.
  */
 public class GroupMemberListAdapter extends ArrayAdapter<GroupMember>{
 
-    Context mContext;
-    int layoutResourceId;
-    List<GroupMember> groupMembers = null;
+    private Context mContext;
+    private int layoutResourceId;
+    private List<GroupMember> groupMembers;
 
     /*
      * Creates an empty PeerListAdapter

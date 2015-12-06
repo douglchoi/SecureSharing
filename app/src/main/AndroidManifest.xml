@@ -50,14 +50,19 @@
             android:name=".NFCPeerActivity"
             android:label="@string/title_activity_send_image" >
         </activity>
-=======
 
-        <!-- Handles sending files -->
+
+        <!-- Handles connections files -->
         <service
-            android:name=".connector.FileTransferService"
+            android:name=".connector.client.JoinGroupService"
             android:exported="false" >
         </service>
->>>>>>> origin/dev
+
+        <service
+            android:name=".connector.client.FileTransferService"
+            android:exported="false" >
+        </service>
+
         <activity
             android:name=".GroupViewActivity"
             android:label="@string/title_activity_group_view" >

@@ -1,4 +1,4 @@
-package cecs.secureshare.connector;
+package cecs.secureshare.connector.client;
 
 import android.app.IntentService;
 import android.content.ContentResolver;
@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+
+import cecs.secureshare.connector.host.FileTransferAsyncTask;
 
 /**
  * Handles sending the file

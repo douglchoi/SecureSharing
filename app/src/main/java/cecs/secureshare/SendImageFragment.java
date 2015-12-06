@@ -12,8 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import cecs.secureshare.connector.FileTransferAsyncTask;
-import cecs.secureshare.connector.FileTransferService;
+import cecs.secureshare.connector.host.FileTransferAsyncTask;
+import cecs.secureshare.connector.client.FileTransferService;
 
 /**
  * Created by Douglas on 10/17/2015.

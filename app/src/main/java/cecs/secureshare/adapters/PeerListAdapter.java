@@ -19,9 +19,9 @@ import cecs.secureshare.R;
  */
 public class PeerListAdapter extends ArrayAdapter<WifiP2pDevice> {
 
-    Context mContext;
-    int layoutResourceId;
-    List<WifiP2pDevice> devices = null;
+    private Context mContext;
+    private int layoutResourceId;
+    private List<WifiP2pDevice> devices;
 
     /*
      * Creates an empty PeerListAdapter

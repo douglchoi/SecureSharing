@@ -6,15 +6,13 @@ import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import cecs.secureshare.R;
-import cecs.secureshare.connector.FileTransferAsyncTask;
-import cecs.secureshare.connector.FileTransferService;
+import cecs.secureshare.connector.host.FileTransferAsyncTask;
+import cecs.secureshare.connector.client.FileTransferService;
 
 /**
  * Fragment for sending a file

@@ -1,4 +1,4 @@
-package cecs.secureshare.connector;
+package cecs.secureshare.connector.host;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import cecs.secureshare.connector.client.FileTransferService;
 
 /**
  * A simple server socket that accepts incoming connections and writes some
