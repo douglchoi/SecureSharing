@@ -11,7 +11,7 @@ import java.security.spec.ECGenParameterSpec;
  * and decrypting files
  * Created by Douglas on 11/15/2015.
  */
-public class DHKeyGenerator {
+public class UnusedDHKeyGenerator {
 
     public static KeyPair generateKeys() {
         try {
@@ -29,7 +29,7 @@ public class DHKeyGenerator {
     }
 
     /*
-    public DHKeyGenerator()
+    public UnusedDHKeyGenerator()
             throws NoSuchAlgorithmException,
                 InvalidParameterSpecException,
                 InvalidAlgorithmParameterException,
@@ -56,7 +56,7 @@ public class DHKeyGenerator {
 
         bKeyAgree.init(kp2.getPrivate());
 
-        // Send this to FileCBCCipher on initialization
+        // Send this to UnusedFileCBCCipher on initialization
         PublicKey publicKey = kp2.getPublic();
         PrivateKey privateKey = kp2.getPrivate();
     }

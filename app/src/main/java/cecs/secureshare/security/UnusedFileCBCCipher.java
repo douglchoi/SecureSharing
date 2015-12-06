@@ -22,7 +22,7 @@ import javax.crypto.spec.IvParameterSpec;
  * This class encrypts and decrypts a file using AES-CBC
  * Created by Douglas on 11/12/2015.
  */
-public class FileCBCCipher {
+public class UnusedFileCBCCipher {
 
     public static enum CipherMode { Encrypt, Decrypt };
 
@@ -36,7 +36,7 @@ public class FileCBCCipher {
 
     /**
      * Initialize the file cipher.
-     * @param key - The encryption/decryption key. Generated from DHKeyGenerator. Passing the public key
+     * @param key - The encryption/decryption key. Generated from UnusedDHKeyGenerator. Passing the public key
      *            for encryption and private key for decryption
      * @param cipherMode - whether we want to encrypt or decrypt
      * @throws NoSuchPaddingException
@@ -45,7 +45,7 @@ public class FileCBCCipher {
      * @throws InvalidAlgorithmParameterException
      * @throws InvalidKeyException
      */
-    public FileCBCCipher(Key key, CipherMode cipherMode)
+    public UnusedFileCBCCipher(Key key, CipherMode cipherMode)
                 throws NoSuchPaddingException,
                         NoSuchAlgorithmException,
                         NoSuchProviderException,

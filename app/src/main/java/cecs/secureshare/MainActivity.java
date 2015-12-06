@@ -8,12 +8,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import org.spongycastle.openpgp.PGPKeyRingGenerator;
+import org.spongycastle.openpgp.PGPPublicKey;
+import org.spongycastle.openpgp.PGPPublicKeyRing;
+import org.spongycastle.openpgp.PGPSecretKey;
+import org.spongycastle.openpgp.PGPSecretKeyRing;
+import org.spongycastle.openpgp.operator.PBESecretKeyDecryptor;
+import org.spongycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.util.Iterator;
 
 import cecs.secureshare.security.CryptoManager;
 import cecs.secureshare.security.PGPCipher;
@@ -30,18 +37,20 @@ public class MainActivity extends AppCompatActivity {
 
         CryptoManager.getInstance().initialize(true);
 
-        // -------------------------- TESTING ----------------------------
-        KeyPair masterKeyPair = CryptoManager.getInstance().getMasterKeyPair();
-
-        String secretString = "This is a secret string.";
-        InputStream plaintext = new ByteArrayInputStream(secretString.getBytes());
-        OutputStream ciphertext = new ByteArrayOutputStream();
-        // ---------------------------------------------------------------
-
         setContentView(R.layout.activity_main);
 
-        // Attach click listeners to main menu buttons
+
+        /* Sample code to call encrypt, decrypt and access keys*/
+        CryptoManager cryptManager = new CryptoManager();
+        String secretString = "THIS IS SECRET";
+        ByteArrayOutputStream cipherText = cryptManager.Encrypt(new ByteArrayInputStream(secretString.getBytes()), "uniqueId");
+        ByteArrayOutputStream secret = cryptManager.Decrypt(cipherText, cryptManager.sk, cryptManager.pass);
+        /* End Sample */
+
         final Button hostGroupButton = (Button) findViewById(R.id.host_group_button);
+        hostGroupButton.setText(new String(secret.toByteArray()));
+
+        // Attach click listeners to main menu buttons
         hostGroupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

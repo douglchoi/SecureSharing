@@ -1,205 +1,183 @@
 package cecs.secureshare.security;
 
-import android.util.Log;
-
-import org.spongycastle.asn1.x500.X500NameBuilder;
-import org.spongycastle.asn1.x500.style.BCStyle;
-import org.spongycastle.cert.X509v3CertificateBuilder;
-import org.spongycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.spongycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.spongycastle.operator.ContentSigner;
-import org.spongycastle.operator.OperatorCreationException;
-import org.spongycastle.operator.jcajce.JcaContentSignerBuilder;
-
+import org.spongycastle.bcpg.HashAlgorithmTags;
+import org.spongycastle.bcpg.ArmoredOutputStream;
+import org.spongycastle.bcpg.HashAlgorithmTags;
+import org.spongycastle.bcpg.SymmetricKeyAlgorithmTags;
+import org.spongycastle.bcpg.sig.Features;
+import org.spongycastle.bcpg.sig.KeyFlags;
+import org.spongycastle.crypto.generators.RSAKeyPairGenerator;
+import org.spongycastle.crypto.params.RSAKeyGenerationParameters;
+import org.spongycastle.openpgp.PGPEncryptedData;
+import org.spongycastle.openpgp.PGPKeyPair;
+import org.spongycastle.openpgp.PGPPrivateKey;
+import org.spongycastle.openpgp.PGPPublicKeyRing;
+import org.spongycastle.openpgp.PGPKeyRingGenerator;
+import org.spongycastle.openpgp.PGPPublicKey;
+import org.spongycastle.openpgp.PGPSecretKey;
+import org.spongycastle.openpgp.PGPSecretKeyRing;
+import org.spongycastle.openpgp.PGPSignature;
+import org.spongycastle.openpgp.PGPSignatureSubpacketGenerator;
+import org.spongycastle.openpgp.operator.PBESecretKeyEncryptor;
+import org.spongycastle.openpgp.operator.PGPDigestCalculator;
+import org.spongycastle.openpgp.operator.bc.BcPBESecretKeyEncryptorBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
+import org.spongycastle.openpgp.operator.bc.BcPGPKeyPair;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.SignatureException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.ECGenParameterSpec;
-import java.util.Calendar;
 import java.util.Date;
+import java.lang.Exception;
+import java.util.Iterator;
+
 
 /**
- * Class for handling the master keys.
- * Created by Douglas on 11/28/2015.
+ * Created by Harshal on 12/5/2015.
  */
 public class PGPKeyManager {
 
-    private static final String PRIVATE_KEY_ALIAS = "secureshare.pgp.key";
-    private static final String KEY_STORE_TYPE = "AndroidKeyStore";
+    public PGPPublicKey pk;
+    public PGPSecretKey sk;
 
-    private static final String CERT_CN = "secureshare cert";
-    private static final String CERT_OU = "cecs";
-    private static final String CERT_O = "cecs";
-
-    /**
-     * For debugging. Clears out the master keys to be regenerated.
-     */
-    public static void clearMasterKeys() {
+    public void GenerataKeys(String UniqueID, char[] pass) {
+        //"alice@example.com"char pass[] = {'h', 'e', 'l', 'l', 'o'};
         try {
-            KeyStore ks = KeyStore.getInstance(KEY_STORE_TYPE);
-            ks.load(null);
-            ks.deleteEntry(PRIVATE_KEY_ALIAS);
-        } catch (Exception e) {
-            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
+            PGPKeyRingGenerator krgen = generateKeyRingGenerator(UniqueID.toString(), pass);
+
+            // Generate public key ring, dump to file.
+            PGPPublicKeyRing pkr = krgen.generatePublicKeyRing();
+            // Generate private key, dump to file.
+            PGPSecretKeyRing skr = krgen.generateSecretKeyRing();
+
+            Iterator<PGPPublicKey> pkIt = pkr.getPublicKeys();
+            pkIt.next();
+            pk  = pkIt.next();
+
+            Iterator<PGPSecretKey> skIt = skr.getSecretKeys();
+            skIt.next();
+            sk  = skIt.next();
+
+
+            //PGPKeyRingGenerator krgen = generateKeyRingGenerator("alice@example.com", pass);
+
+            // Generate public key ring, dump to file.
+            //PGPPublicKeyRing pkr = krgen.generatePublicKeyRing();
+
+            /*ArmoredOutputStream pubout = new ArmoredOutputStream(new BufferedOutputStream(new FileOutputStream("/home/user/dummy.asc")));
+            pkr.encode(pubout);
+            pubout.close();*/
+
+            // Generate private key, dump to file.
+            //PGPSecretKeyRing skr = krgen.generateSecretKeyRing();
+            /*BufferedOutputStream secout = new BufferedOutputStream(new FileOutputStream("/home/user/dummy.skr"));
+            skr.encode(secout);
+            secout.close();*/
+        }
+        catch (Exception e) {
+
         }
     }
 
-    /**
-     * Returns an existing master keypair in android KeyStore. If not, it will create it
-     * and store it in KeyStore.
-     */
-    public static KeyPair initializeMasterKeyPair() {
-        PGPKeyManager keyManager = new PGPKeyManager();
 
-        KeyPair kp = null;
-
-        // Load it from Android's KeyStore
-        try {
-            kp = keyManager.loadMasterKeyFromKeyStore();
-        } catch (Exception e) {
-            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
-        }
-
-        // Private key was not found, so generate a new one
-        if (kp == null) {
-            Log.d(CryptoManager.TAG, "Private key not found. Generated new pair.");
-            try {
-                kp = keyManager.generateMasterKeys();
-                Log.d(CryptoManager.TAG, "New key pair generated.");
-
-                // Before we store it in the KeyStore, we require to create self-signed certs for the keypair
-                X509Certificate certificate = createCertificate(kp);
-                keyManager.storeMasterKeyInKeyStore(kp.getPrivate(), certificate);
-
-                Log.d(CryptoManager.TAG, "Private keys stored.");
-
-            } catch (Exception e) {
-                Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
-            }
-        } else {
-            Log.d(CryptoManager.TAG, "Existing private keys loaded.");
-        }
-        return kp;
+    private  PGPKeyRingGenerator generateKeyRingGenerator
+            (String id, char[] pass)
+            throws Exception {
+        return generateKeyRingGenerator(id, pass, 0xc0);
     }
 
-    /**
-     *
-     * Save the master private key in android's KeyStore
-     * @param privateKey the private key to store
-     * @param certificate certificate to verify private key
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     */
-    private void storeMasterKeyInKeyStore(PrivateKey privateKey, Certificate certificate)
-            throws KeyStoreException,
-                    CertificateException,
-                    NoSuchAlgorithmException,
-                    IOException {
-        KeyStore ks = KeyStore.getInstance(KEY_STORE_TYPE);
-        ks.load(null);
-        ks.setKeyEntry(PRIVATE_KEY_ALIAS, privateKey, null, new Certificate[]{certificate});
-    }
+    private final PGPKeyRingGenerator generateKeyRingGenerator
+            (String id, char[] pass, int s2kcount)
+            throws Exception {
+        // This object generates individual key-pairs.
+        RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
 
-    /**
-     *
-     * Loads the master key pair from KeyStore. Returns null if not found
-     * @return the master key pair
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     * @throws UnrecoverableEntryException
-     */
-    private KeyPair loadMasterKeyFromKeyStore()
-            throws KeyStoreException,
-                CertificateException,
-            NoSuchAlgorithmException,
-            IOException,
-            UnrecoverableEntryException,
-            InvalidKeyException,
-            NoSuchProviderException,
-            SignatureException {
+        // Boilerplate RSA parameters, no need to change anything
+        // except for the RSA key-size (2048). You can use whatever
+        // key-size makes sense for you -- 4096, etc.
+        kpg.init
+                (new RSAKeyGenerationParameters
+                        (BigInteger.valueOf(0x10001),
+                                new SecureRandom(), 2048, 12));
 
-        KeyStore ks = KeyStore.getInstance(KEY_STORE_TYPE);
-        ks.load(null);
-        KeyStore.Entry sEntry = ks.getEntry(PRIVATE_KEY_ALIAS, null);
+        // First create the master (signing) key with the generator.
+        PGPKeyPair rsakp_sign =
+                new BcPGPKeyPair
+                        (PGPPublicKey.RSA_SIGN, kpg.generateKeyPair(), new Date());
+        // Then an encryption subkey.
+        PGPKeyPair rsakp_enc =
+                new BcPGPKeyPair
+                        (PGPPublicKey.RSA_ENCRYPT, kpg.generateKeyPair(), new Date());
 
-        if (!(sEntry instanceof KeyStore.PrivateKeyEntry)) {
-            Log.d(CryptoManager.TAG, "Not a private key.");
-            return null;
-        }
+        // Add a self-signature on the id
+        PGPSignatureSubpacketGenerator signhashgen =
+                new PGPSignatureSubpacketGenerator();
 
-        // retrieve private key from KeyStore, and public key from the certificate
-        Certificate certificate = ((KeyStore.PrivateKeyEntry) sEntry).getCertificate();
-        PrivateKey sKey = ((KeyStore.PrivateKeyEntry) sEntry).getPrivateKey();
-        PublicKey pKey = certificate.getPublicKey();
+        // Add signed metadata on the signature.
+        // 1) Declare its purpose
+        signhashgen.setKeyFlags
+                (false, KeyFlags.SIGN_DATA | KeyFlags.CERTIFY_OTHER);
+        // 2) Set preferences for secondary crypto algorithms to use
+        //    when sending messages to this key.
+        signhashgen.setPreferredSymmetricAlgorithms
+                (false, new int[]{
+                        SymmetricKeyAlgorithmTags.AES_256,
+                        SymmetricKeyAlgorithmTags.AES_192,
+                        SymmetricKeyAlgorithmTags.AES_128
+                });
+        signhashgen.setPreferredHashAlgorithms
+                (false, new int[]{
+                        HashAlgorithmTags.SHA256,
+                        HashAlgorithmTags.SHA1,
+                        HashAlgorithmTags.SHA384,
+                        HashAlgorithmTags.SHA512,
+                        HashAlgorithmTags.SHA224,
+                });
+        // 3) Request senders add additional checksums to the
+        //    message (useful when verifying unsigned messages.)
+        signhashgen.setFeature
+                (false, Features.FEATURE_MODIFICATION_DETECTION);
 
-        // verify that the certificate is verified
-        certificate.verify(pKey);
+        // Create a signature on the encryption subkey.
+        PGPSignatureSubpacketGenerator enchashgen =
+                new PGPSignatureSubpacketGenerator();
+        // Add metadata to declare its purpose
+        enchashgen.setKeyFlags
+                (false, KeyFlags.ENCRYPT_COMMS | KeyFlags.ENCRYPT_STORAGE);
 
-        return new KeyPair(pKey, sKey);
-    }
+        // Objects used to encrypt the secret key.
+        PGPDigestCalculator sha1Calc =
+                new BcPGPDigestCalculatorProvider()
+                        .get(HashAlgorithmTags.SHA1);
+        PGPDigestCalculator sha256Calc =
+                new BcPGPDigestCalculatorProvider()
+                        .get(HashAlgorithmTags.SHA256);
 
-    /**
-     * Generates a RSA key pair. This is the master key used for PGP encryption
-     * @return
-     * @throws NoSuchProviderException
-     * @throws NoSuchAlgorithmException
-     */
-    private KeyPair generateMasterKeys()
-            throws NoSuchProviderException,
-                    NoSuchAlgorithmException,
-                    InvalidAlgorithmParameterException {
-        // Create the master key
-        ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime192v1");
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH", "SC");
-        kpg.initialize(ecSpec, new SecureRandom());
-        return kpg.generateKeyPair();
-    }
+        // bcpg 1.48 exposes this API that includes s2kcount. Earlier
+        // versions use a default of 0x60.
+        PBESecretKeyEncryptor pske =
+                (new BcPBESecretKeyEncryptorBuilder
+                        (PGPEncryptedData.AES_256, sha256Calc, s2kcount))
+                        .build(pass);
 
-    /**
-     * Generate a certificate for the key pair
-     * @param keyPair
-     * @return
-     * @throws OperatorCreationException
-     * @throws CertificateException
-     */
-    private static X509Certificate createCertificate(KeyPair keyPair)
-            throws OperatorCreationException,
-                    CertificateException,
-                    IOException {
-        X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
-        nameBuilder.addRDN(BCStyle.OU, CERT_OU);
-        nameBuilder.addRDN(BCStyle.O, CERT_O);
-        nameBuilder.addRDN(BCStyle.CN, CERT_CN);
+        // Finally, create the keyring itself. The constructor
+        // takes parameters that allow it to generate the self
+        // signature.
+        PGPKeyRingGenerator keyRingGen =
+                new PGPKeyRingGenerator
+                        (PGPSignature.POSITIVE_CERTIFICATION, rsakp_sign,
+                                id, sha1Calc, signhashgen.generate(), null,
+                                new BcPGPContentSignerBuilder
+                                        (rsakp_sign.getPublicKey().getAlgorithm(),
+                                                HashAlgorithmTags.SHA256),
+                                pske);
 
-        Date start = new Date();
-        Calendar endCal = Calendar.getInstance();
-        endCal.setTime(start);
-        endCal.add(Calendar.YEAR, 10); // Expires in 10 years
-        Date end = endCal.getTime();
-
-        BigInteger serialNumber = new BigInteger(128, new SecureRandom());
-
-        X509v3CertificateBuilder certificateBuilder =  new JcaX509v3CertificateBuilder(nameBuilder.build(), serialNumber, start, end, nameBuilder.build(), keyPair.getPublic());
-        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WITHECDSA").setProvider("SC").build(keyPair.getPrivate());
-        return new JcaX509CertificateConverter().getCertificate(certificateBuilder.build(contentSigner));
+        // Add our encryption subkey, together with its signature.
+        keyRingGen.addSubKey
+                (rsakp_enc, enchashgen.generate(), null);
+        return keyRingGen;
     }
 }
