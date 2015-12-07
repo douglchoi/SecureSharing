@@ -1,7 +1,5 @@
 package cecs.secureshare.connector.messages;
 
-import org.spongycastle.openpgp.PGPPublicKey;
-
 /**
  * A message that store the information about this group memeber
  * Created by Douglas on 12/6/2015.
@@ -9,23 +7,27 @@ import org.spongycastle.openpgp.PGPPublicKey;
 public class SendInfoMessage extends Message {
 
     private String name;
-    private PGPPublicKey publicKey;
+    private byte[] encodedPublicKeyRing;
+
+    public SendInfoMessage() {
+        super(Action.SEND_INFO);
+    }
 
     /**
      * @param name
-     * @param publicKey
+     * @param encodedPublicKeyRing
      */
-    public SendInfoMessage(String name, PGPPublicKey publicKey) {
+    public SendInfoMessage(String name, byte[] encodedPublicKeyRing) {
         super(Action.SEND_INFO);
         this.name = name;
-        this.publicKey = publicKey;
+        this.encodedPublicKeyRing = encodedPublicKeyRing;
     }
 
     public String getName() {
         return name;
     }
 
-    public PGPPublicKey getPublicKey() {
-        return publicKey;
+    public byte[] getEncodedPublicKeyRing() {
+        return encodedPublicKeyRing;
     }
 }

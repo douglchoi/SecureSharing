@@ -1,7 +1,7 @@
 package cecs.secureshare.security;
 
-import org.spongycastle.bcpg.HashAlgorithmTags;
-import org.spongycastle.bcpg.ArmoredOutputStream;
+import android.util.Log;
+
 import org.spongycastle.bcpg.HashAlgorithmTags;
 import org.spongycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.spongycastle.bcpg.sig.Features;
@@ -10,28 +10,32 @@ import org.spongycastle.crypto.generators.RSAKeyPairGenerator;
 import org.spongycastle.crypto.params.RSAKeyGenerationParameters;
 import org.spongycastle.openpgp.PGPEncryptedData;
 import org.spongycastle.openpgp.PGPKeyPair;
-import org.spongycastle.openpgp.PGPPrivateKey;
-import org.spongycastle.openpgp.PGPPublicKeyRing;
 import org.spongycastle.openpgp.PGPKeyRingGenerator;
 import org.spongycastle.openpgp.PGPPublicKey;
+import org.spongycastle.openpgp.PGPPublicKeyRing;
+import org.spongycastle.openpgp.PGPPublicKeyRingCollection;
 import org.spongycastle.openpgp.PGPSecretKey;
 import org.spongycastle.openpgp.PGPSecretKeyRing;
 import org.spongycastle.openpgp.PGPSignature;
 import org.spongycastle.openpgp.PGPSignatureSubpacketGenerator;
+import org.spongycastle.openpgp.PGPUtil;
+import org.spongycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection;
 import org.spongycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.spongycastle.openpgp.operator.PGPDigestCalculator;
 import org.spongycastle.openpgp.operator.bc.BcPBESecretKeyEncryptorBuilder;
 import org.spongycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.spongycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.spongycastle.openpgp.operator.bc.BcPGPKeyPair;
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.spongycastle.util.encoders.Base64Encoder;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.KeyFactory;
 import java.security.SecureRandom;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
-import java.lang.Exception;
 import java.util.Iterator;
 
 
@@ -39,56 +43,48 @@ import java.util.Iterator;
  * Created by Harshal on 12/5/2015.
  */
 public class PGPKeyManager {
-
-    public PGPPublicKey pk;
-    public PGPSecretKey sk;
-
-    public void GenerataKeys(String UniqueID, char[] pass) {
-        //"alice@example.com"char pass[] = {'h', 'e', 'l', 'l', 'o'};
+    /**
+     * Returns a PGPKeyPair
+     * @param uniqueId
+     * @param password
+     * @return
+     */
+    public PGPKeyPairContainer generateKeys(String uniqueId, char[] password) {
         try {
-            PGPKeyRingGenerator krgen = generateKeyRingGenerator(UniqueID.toString(), pass);
+            PGPKeyRingGenerator krgen = generateKeyRingGenerator(uniqueId, password);
 
-            // Generate public key ring, dump to file.
+            // Generate public key ring
             PGPPublicKeyRing pkr = krgen.generatePublicKeyRing();
-            // Generate private key, dump to file.
+            // Generate private key
             PGPSecretKeyRing skr = krgen.generateSecretKeyRing();
 
-            Iterator<PGPPublicKey> pkIt = pkr.getPublicKeys();
-            pkIt.next();
-            pk  = pkIt.next();
-
-            Iterator<PGPSecretKey> skIt = skr.getSecretKeys();
-            skIt.next();
-            sk  = skIt.next();
-
-
-            //PGPKeyRingGenerator krgen = generateKeyRingGenerator("alice@example.com", pass);
-
-            // Generate public key ring, dump to file.
-            //PGPPublicKeyRing pkr = krgen.generatePublicKeyRing();
-
-            /*ArmoredOutputStream pubout = new ArmoredOutputStream(new BufferedOutputStream(new FileOutputStream("/home/user/dummy.asc")));
-            pkr.encode(pubout);
-            pubout.close();*/
-
-            // Generate private key, dump to file.
-            //PGPSecretKeyRing skr = krgen.generateSecretKeyRing();
-            /*BufferedOutputStream secout = new BufferedOutputStream(new FileOutputStream("/home/user/dummy.skr"));
-            skr.encode(secout);
-            secout.close();*/
+            return new PGPKeyPairContainer(pkr, skr);
         }
         catch (Exception e) {
-
+            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
+            return null;
         }
     }
 
-
-    private  PGPKeyRingGenerator generateKeyRingGenerator
+    /**
+     * @param id
+     * @param pass
+     * @return
+     * @throws Exception
+     */
+    private PGPKeyRingGenerator generateKeyRingGenerator
             (String id, char[] pass)
             throws Exception {
         return generateKeyRingGenerator(id, pass, 0xc0);
     }
 
+    /**
+     * @param id
+     * @param pass
+     * @param s2kcount
+     * @return
+     * @throws Exception
+     */
     private final PGPKeyRingGenerator generateKeyRingGenerator
             (String id, char[] pass, int s2kcount)
             throws Exception {

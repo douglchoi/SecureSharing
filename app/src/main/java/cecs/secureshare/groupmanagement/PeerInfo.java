@@ -1,10 +1,10 @@
 package cecs.secureshare.groupmanagement;
 
-import java.net.Socket;
-
 import cecs.secureshare.connector.client.JoinGroupService;
 
 /**
+ * This object contains the information about the client and the reference to the service
+ * object holding the socket connection to the host.
  * Created by Harshal on 12/6/2015.
  */
 public class PeerInfo {
@@ -18,8 +18,7 @@ public class PeerInfo {
 
     private JoinGroupService currentConn;
 
-    private PeerInfo() {
-    }
+    private PeerInfo() { }
 
     public JoinGroupService getCurrentConn() {
         return currentConn;

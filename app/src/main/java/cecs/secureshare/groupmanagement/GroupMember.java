@@ -1,10 +1,18 @@
 package cecs.secureshare.groupmanagement;
 
 import org.spongycastle.openpgp.PGPPublicKey;
+import org.spongycastle.openpgp.PGPPublicKeyRing;
+import org.spongycastle.openpgp.PGPPublicKeyRingCollection;
+import org.spongycastle.openpgp.PGPUtil;
+import org.spongycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.Socket;
+import java.util.Iterator;
 
 import cecs.secureshare.connector.host.ClientConnectionThread;
+import cecs.secureshare.security.CryptoManager;
 
 /**
  * Created by Douglas on 12/3/2015.
@@ -15,8 +23,13 @@ public class GroupMember {
     private PGPPublicKey publicKey;
     private ClientConnectionThread clientConn;
 
-    public GroupMember(ClientConnectionThread clientConn) {
+    /**
+     * @param clientConn
+     * @param encodedPublicKeyRing
+     */
+    public GroupMember(ClientConnectionThread clientConn, byte[] encodedPublicKeyRing) {
         this.clientConn = clientConn;
+        publicKey = CryptoManager.extractPublicKey(encodedPublicKeyRing);
     }
 
     public String getName() {

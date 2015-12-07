@@ -231,17 +231,16 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
                 // get the image
                 Uri imageUri = data.getData();
 
-                // TODO: 1. encrypt file in imageUri
-                //       2. send file to host?
-
                 try {
                     // open the file as input stream
                     ContentResolver cr = getContentResolver();
                     InputStream fis = cr.openInputStream(imageUri);
 
                     // encrypt the file
-                    CryptoManager cryptManager = new CryptoManager();
-                    ByteArrayOutputStream cipherText = cryptManager.Encrypt(fis, "uniqueId");
+                    ByteArrayOutputStream cipherText = new ByteArrayOutputStream();
+                    CryptoManager.getInstance().encrypt(fis, cipherText, CryptoManager.getInstance().getPublicKey());
+
+                    // send the file
                     PeerInfo.getInstance().getCurrentConn().sendFileToHost(cipherText.toByteArray());
 
                     Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();

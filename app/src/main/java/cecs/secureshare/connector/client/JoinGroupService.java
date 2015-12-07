@@ -85,8 +85,8 @@ public class JoinGroupService extends IntentService {
             in = new ObjectInputStream(socket.getInputStream());
 
             // send my info
-            //PGPPublicKey pk = CryptoManager.getInstance().pk;
-            SendInfoMessage message = new SendInfoMessage("My name", null);
+            byte[] encodedPkr = CryptoManager.getInstance().getPublicKeyRing().getEncoded();
+            SendInfoMessage message = new SendInfoMessage("My name", encodedPkr);
             message.writeToOutputStream(out);
             out.flush();
 

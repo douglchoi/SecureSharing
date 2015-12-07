@@ -12,6 +12,10 @@ public class SendFileMessage extends Message {
 
     private byte[] fileByteArray;
 
+    public SendFileMessage() {
+        super(Action.SEND_FILE);
+    }
+
     public SendFileMessage(byte[] fileByteArray) {
         super(Action.SEND_FILE);
         this.fileByteArray = fileByteArray;

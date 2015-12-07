@@ -4,19 +4,14 @@ import android.util.Log;
 
 import org.spongycastle.openpgp.PGPPublicKey;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.acl.Group;
+import java.security.KeyFactory;
 
 import cecs.secureshare.GroupViewActivity;
-import cecs.secureshare.SendFileFragment;
 import cecs.secureshare.connector.messages.Message;
 import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
@@ -69,8 +64,9 @@ public class ClientConnectionThread extends Thread {
                         SendInfoMessage infoMessage = (SendInfoMessage) message;
 
                         // add it to the global list of group members
-                        GroupMember groupMember = new GroupMember(this);
+                        GroupMember groupMember = new GroupMember(this, infoMessage.getEncodedPublicKeyRing());
                         groupMember.setName(infoMessage.getName());
+
                         GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
 
                         // update the UI
@@ -86,13 +82,13 @@ public class ClientConnectionThread extends Thread {
                         // do something with received file... send it to all clients
                         byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
 
-                        // TODO: decrypt the fileByteArray
+                        byte[] decryptedByteFileArray = new byte[fileByteArray.length]; // TODO: decrypt the fileByteArray
 
                         // loop through connected devices
                         for (GroupMember otherMembers : GroupManager.getInstance().getGroupMembers().values()) {
                             // don't send to file to myself
                             if (otherMembers.getClientConn() != this) {
-                                byte[] encryptedFileByteArray = new byte[fileByteArray.length]; // TODO: encrypted fileByteArray with this member's public key
+                                byte[] encryptedFileByteArray = new byte[fileByteArray.length]; // TODO: encrypt fileByteArray with host's public key
                                 PGPPublicKey publicKey = otherMembers.getPublicKey(); // TODO: this the group member's public key
 
                                 // sends the file
