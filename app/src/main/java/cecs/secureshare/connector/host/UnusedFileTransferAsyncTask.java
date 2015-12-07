@@ -14,23 +14,23 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import cecs.secureshare.connector.client.FileTransferService;
+import cecs.secureshare.connector.client.UnusedFileTransferService;
 
 /**
  * A simple server socket that accepts incoming connections and writes some
  * data on the stream
  * Created by Douglas on 9/30/2015.
  */
-public class FileTransferAsyncTask extends AsyncTask<Void, Void, String>{
+public class UnusedFileTransferAsyncTask extends AsyncTask<Void, Void, String>{
 
-    private final String TAG = "FileTransferAsyncTask";
+    private final String TAG = "UnusedFileTransferAsyncTask";
     protected Context context;
     protected TextView statusLabel;
 
     /**
      * @param context
      */
-    public FileTransferAsyncTask(Context context, TextView statusLabel) {
+    public UnusedFileTransferAsyncTask(Context context, TextView statusLabel) {
         this.context = context;
         this.statusLabel = statusLabel;
     }
@@ -40,7 +40,7 @@ public class FileTransferAsyncTask extends AsyncTask<Void, Void, String>{
 
         try {
             // open a server socket
-            ServerSocket serverSocket = new ServerSocket(FileTransferService.HOST_PORT);
+            ServerSocket serverSocket = new ServerSocket(UnusedFileTransferService.HOST_PORT);
             Socket client = serverSocket.accept();
 
             // write file to directory

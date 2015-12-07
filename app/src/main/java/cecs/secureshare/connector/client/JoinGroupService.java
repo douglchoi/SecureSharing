@@ -1,28 +1,15 @@
 package cecs.secureshare.connector.client;
 
 import android.app.IntentService;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 
-import org.spongycastle.openpgp.PGPPublicKey;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import cecs.secureshare.connector.host.FileTransferAsyncTask;
 import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
 import cecs.secureshare.groupmanagement.PeerInfo;

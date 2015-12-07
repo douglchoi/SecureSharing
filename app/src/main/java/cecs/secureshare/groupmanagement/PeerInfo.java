@@ -3,12 +3,11 @@ package cecs.secureshare.groupmanagement;
 import cecs.secureshare.connector.client.JoinGroupService;
 
 /**
- * This object contains the information about the client and the reference to the service
- * object holding the socket connection to the host.
+ * This object contains the information abeout the client and the reference to the service
+ * object holding the socket connection to th host.
  * Created by Harshal on 12/6/2015.
  */
 public class PeerInfo {
-
 
     private static PeerInfo ourInstance = new PeerInfo();
 

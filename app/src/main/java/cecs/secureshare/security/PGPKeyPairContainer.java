@@ -1,12 +1,10 @@
 package cecs.secureshare.security;
 
-import org.spongycastle.openpgp.PGPPublicKey;
 import org.spongycastle.openpgp.PGPPublicKeyRing;
-import org.spongycastle.openpgp.PGPSecretKey;
 import org.spongycastle.openpgp.PGPSecretKeyRing;
 
 /**
- * A simple container for public and private keys
+ * A simple container for public and private key rings
  */
 public class PGPKeyPairContainer {
 

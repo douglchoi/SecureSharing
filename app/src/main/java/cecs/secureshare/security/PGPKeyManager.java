@@ -13,33 +13,23 @@ import org.spongycastle.openpgp.PGPKeyPair;
 import org.spongycastle.openpgp.PGPKeyRingGenerator;
 import org.spongycastle.openpgp.PGPPublicKey;
 import org.spongycastle.openpgp.PGPPublicKeyRing;
-import org.spongycastle.openpgp.PGPPublicKeyRingCollection;
-import org.spongycastle.openpgp.PGPSecretKey;
 import org.spongycastle.openpgp.PGPSecretKeyRing;
 import org.spongycastle.openpgp.PGPSignature;
 import org.spongycastle.openpgp.PGPSignatureSubpacketGenerator;
-import org.spongycastle.openpgp.PGPUtil;
-import org.spongycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection;
 import org.spongycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.spongycastle.openpgp.operator.PGPDigestCalculator;
 import org.spongycastle.openpgp.operator.bc.BcPBESecretKeyEncryptorBuilder;
 import org.spongycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.spongycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.spongycastle.openpgp.operator.bc.BcPGPKeyPair;
-import org.spongycastle.util.encoders.Base64Encoder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.KeyFactory;
 import java.security.SecureRandom;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
-import java.util.Iterator;
 
 
 /**
+ * Generate PGP private and public key pairs
  * Created by Harshal on 12/5/2015.
  */
 public class PGPKeyManager {

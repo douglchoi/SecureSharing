@@ -26,8 +26,6 @@ public class ClientConnectionThread extends Thread {
 
     public static final String TAG = "ClientConnectionThread";
 
-    private static final int BUFFER_SIZE = 2048;
-
     private boolean running;
     private Socket clientSocket;
     private ServerSocket serverSocket;

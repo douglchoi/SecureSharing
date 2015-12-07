@@ -14,13 +14,13 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import cecs.secureshare.connector.host.FileTransferAsyncTask;
+import cecs.secureshare.connector.host.UnusedFileTransferAsyncTask;
 
 /**
  * Handles sending the file
  * Created by Douglas on 10/11/2015.
  */
-public class FileTransferService extends IntentService {
+public class UnusedFileTransferService extends IntentService {
 
     public static final String FILE_URL = "fileUrl";
     public static final String HOST_DEVICE_ADDRESS = "deviceAddress";
@@ -28,8 +28,8 @@ public class FileTransferService extends IntentService {
     public static final int HOST_PORT = 8988;
     public static final int SOCKET_TIMEOUT = 5000;
 
-    public FileTransferService() {
-        super("FileTransferService");
+    public UnusedFileTransferService() {
+        super("UnusedFileTransferService");
     }
 
     @Override
@@ -58,7 +58,7 @@ public class FileTransferService extends IntentService {
                 } catch (FileNotFoundException e) {
                     Log.d("Info", e.toString());
                 }
-                FileTransferAsyncTask.copyFile(is, stream);
+                UnusedFileTransferAsyncTask.copyFile(is, stream);
                 Log.d("Info", "Data written");
             } catch (IOException e) {
                 Log.e("Info", e.getMessage());

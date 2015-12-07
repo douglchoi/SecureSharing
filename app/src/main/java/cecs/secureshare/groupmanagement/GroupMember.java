@@ -1,15 +1,6 @@
 package cecs.secureshare.groupmanagement;
 
 import org.spongycastle.openpgp.PGPPublicKey;
-import org.spongycastle.openpgp.PGPPublicKeyRing;
-import org.spongycastle.openpgp.PGPPublicKeyRingCollection;
-import org.spongycastle.openpgp.PGPUtil;
-import org.spongycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.Socket;
-import java.util.Iterator;
 
 import cecs.secureshare.connector.host.ClientConnectionThread;
 import cecs.secureshare.security.CryptoManager;

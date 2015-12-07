@@ -44,10 +44,6 @@
             android:label="@string/title_activity_find_peer" >
         </activity>
         <activity
-            android:name=".SendImageActivity"
-            android:label="@string/title_activity_send_image" >
-        </activity>
-        <activity
             android:name=".NFCPeerActivity"
             android:label="@string/title_activity_send_image" >
         </activity>
@@ -56,11 +52,6 @@
         <!-- Handles connections files -->
         <service
             android:name=".connector.client.JoinGroupService"
-            android:exported="false" >
-        </service>
-
-        <service
-            android:name=".connector.client.FileTransferService"
             android:exported="false" >
         </service>
 
