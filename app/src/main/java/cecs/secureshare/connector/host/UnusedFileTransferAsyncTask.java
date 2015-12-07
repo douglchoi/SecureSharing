@@ -23,7 +23,7 @@ import cecs.secureshare.connector.client.UnusedFileTransferService;
  */
 public class UnusedFileTransferAsyncTask extends AsyncTask<Void, Void, String>{
 
-    private final String TAG = "UnusedFileTransferAsyncTask";
+    private final String TAG = "FileTransferAsyncTask";
     protected Context context;
     protected TextView statusLabel;
 

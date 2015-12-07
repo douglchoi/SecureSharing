@@ -4,6 +4,8 @@ import android.util.Log;
 
 import org.spongycastle.openpgp.PGPPublicKey;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,11 +14,13 @@ import java.net.Socket;
 import java.security.KeyFactory;
 
 import cecs.secureshare.GroupViewActivity;
+import cecs.secureshare.connector.FileWriter;
 import cecs.secureshare.connector.messages.Message;
 import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
 import cecs.secureshare.groupmanagement.GroupManager;
 import cecs.secureshare.groupmanagement.GroupMember;
+import cecs.secureshare.security.CryptoManager;
 
 /**
  * The host will create this new thread for each client connection
@@ -67,6 +71,11 @@ public class ClientConnectionThread extends Thread {
 
                         GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
 
+                        // send the client host's public key
+                        byte[] encodedPkr = CryptoManager.getInstance().getPublicKeyRing().getEncoded();
+                        SendInfoMessage hostInfoMessage = new SendInfoMessage("Host", encodedPkr);
+                        hostInfoMessage.writeToOutputStream(out);
+
                         // update the UI
                         groupViewActivity.runOnUiThread(new Runnable() {
                             @Override
@@ -79,18 +88,23 @@ public class ClientConnectionThread extends Thread {
                     case SEND_FILE:
                         // do something with received file... send it to all clients
                         byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
+                        // decrypt with host's key
+                        ByteArrayOutputStream decrypted = new ByteArrayOutputStream();
+                        CryptoManager.getInstance().decrypt(new ByteArrayInputStream(fileByteArray), decrypted, CryptoManager.getInstance().getSecretKey());
 
-                        byte[] decryptedByteFileArray = new byte[fileByteArray.length]; // TODO: decrypt the fileByteArray
+                        // just keep a copy on the host device
+                        FileWriter.writeFile(groupViewActivity.getApplicationContext(), new ByteArrayInputStream(fileByteArray)); // for demo, also write the encrypted file
+                        FileWriter.writeFile(groupViewActivity.getApplicationContext(), new ByteArrayInputStream(decrypted.toByteArray())); // this is the actual decrypted file
 
                         // loop through connected devices
                         for (GroupMember otherMembers : GroupManager.getInstance().getGroupMembers().values()) {
                             // don't send to file to myself
                             if (otherMembers.getClientConn() != this) {
-                                byte[] encryptedFileByteArray = new byte[fileByteArray.length]; // TODO: encrypt fileByteArray with host's public key
-                                PGPPublicKey publicKey = otherMembers.getPublicKey(); // TODO: this the group member's public key
-
+                                // encrypt with client's public key
+                                ByteArrayOutputStream reEncrypted = new ByteArrayOutputStream();
+                                CryptoManager.getInstance().encrypt(new ByteArrayInputStream(decrypted.toByteArray()), reEncrypted, otherMembers.getPublicKey());
                                 // sends the file
-                                otherMembers.getClientConn().sendFileToClient(encryptedFileByteArray);
+                                otherMembers.getClientConn().sendFileToClient(reEncrypted.toByteArray());
                             }
                         }
 

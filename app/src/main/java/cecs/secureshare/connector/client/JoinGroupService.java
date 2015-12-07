@@ -1,17 +1,30 @@
 package cecs.secureshare.connector.client;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 import android.util.Log;
 
+import org.spongycastle.openpgp.PGPPublicKey;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import cecs.secureshare.connector.FileWriter;
+import cecs.secureshare.connector.messages.Message;
 import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
+import cecs.secureshare.groupmanagement.GroupManager;
+import cecs.secureshare.groupmanagement.GroupMember;
 import cecs.secureshare.groupmanagement.PeerInfo;
 import cecs.secureshare.security.CryptoManager;
 
@@ -59,6 +72,8 @@ public class JoinGroupService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
+        Context context = getApplicationContext();
+
         String hostDeviceAddress = intent.getExtras().getString(HOST_DEVICE_ADDRESS);
 
         socket = new Socket();
@@ -73,9 +88,36 @@ public class JoinGroupService extends IntentService {
 
             // send my info
             byte[] encodedPkr = CryptoManager.getInstance().getPublicKeyRing().getEncoded();
-            SendInfoMessage message = new SendInfoMessage("My name", encodedPkr);
-            message.writeToOutputStream(out);
+            SendInfoMessage clientInfoMessage = new SendInfoMessage("My name", encodedPkr);
+            clientInfoMessage.writeToOutputStream(out);
             out.flush();
+
+            // all further messages
+            running = true;
+            while (running) {
+                // receive a message. This is blocking I/O
+                Message message = Message.readInputStream(in);
+
+                // determine action based on message type
+                switch (message.getAction()) {
+                    case SEND_INFO: // accept host information
+                        SendInfoMessage infoMessage = (SendInfoMessage) message;
+                        // set the public key from the host
+                        PeerInfo.getInstance().setHostPublicKey(infoMessage.getEncodedPublicKeyRing());
+                        break;
+
+                    case SEND_FILE:
+                        // do something with received file from the host
+                        byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
+                        // decrypt with secret key
+                        ByteArrayOutputStream decrypted = new ByteArrayOutputStream();
+                        CryptoManager.getInstance().decrypt(new ByteArrayInputStream(fileByteArray), decrypted, CryptoManager.getInstance().getSecretKey());
+                        // save to directory
+                        FileWriter.writeFile(context, new ByteArrayInputStream(fileByteArray));  // for demo, also write the encrypted file
+                        FileWriter.writeFile(context, new ByteArrayInputStream(decrypted.toByteArray())); // this is the actual decrypted file
+                        break;
+                }
+            }
 
         } catch (IOException e) {
             Log.d(TAG, e.getLocalizedMessage(), e);

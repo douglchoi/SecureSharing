@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.spongycastle.openpgp.PGPPublicKey;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,6 +49,8 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
     public static final String EXTRAS_DEVICE_ADDRESS = "deviceAddress";
 
     private GroupMemberListAdapter mGroupMemberListAdapter;
+
+    private boolean isHost;
 
     // Wifi components
     private WifiP2pManager mWifiManager;
@@ -80,6 +84,7 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
         if (getIntent().getExtras() != null) { // connect to the device
             boolean isHost = getIntent().getExtras().getBoolean(EXTRAS_IS_HOST);
             if (!isHost) {
+                isHost = false;
                 String deviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
 
                 WifiP2pConfig config = new WifiP2pConfig();
@@ -98,10 +103,12 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
                         Toast.makeText(GroupViewActivity.this, "Failed to connect [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
                     }
                 });
+            } else {
+                isHost = true;
             }
+        } else {
+            isHost = true;
         }
-
-
     }
 
     /**
@@ -235,13 +242,22 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
                     // open the file as input stream
                     ContentResolver cr = getContentResolver();
                     InputStream fis = cr.openInputStream(imageUri);
-
-                    // encrypt the file
                     ByteArrayOutputStream cipherText = new ByteArrayOutputStream();
-                    CryptoManager.getInstance().encrypt(fis, cipherText, CryptoManager.getInstance().getPublicKey());
 
-                    // send the file
-                    PeerInfo.getInstance().getCurrentConn().sendFileToHost(cipherText.toByteArray());
+                    if (isHost) { // Host case
+                        // loop through connected devices
+                        for (GroupMember otherMembers : GroupManager.getInstance().getGroupMembers().values()) {
+                            // encrypt with each member's public key
+                            CryptoManager.getInstance().encrypt(fis, cipherText, otherMembers.getPublicKey());
+                            // sends the file
+                            otherMembers.getClientConn().sendFileToClient(cipherText.toByteArray());
+                        }
+                    } else { // Client case
+                        // encrypt the file with host public key
+                        CryptoManager.getInstance().encrypt(fis, cipherText, PeerInfo.getInstance().getHostPublicKey());
+                        // send the file
+                        PeerInfo.getInstance().getCurrentConn().sendFileToHost(cipherText.toByteArray());
+                    }
 
                     Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
