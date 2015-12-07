@@ -7,19 +7,26 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import org.spongycastle.openpgp.PGPPublicKey;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import cecs.secureshare.connector.host.FileTransferAsyncTask;
+import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
 import cecs.secureshare.groupmanagement.PeerInfo;
+import cecs.secureshare.security.CryptoManager;
 
 /**
  * Service for a client to connect to the group host.
@@ -30,7 +37,7 @@ public class JoinGroupService extends IntentService {
     public static final String TAG = "JoinGroupService";
     public static final String HOST_DEVICE_ADDRESS = "deviceAddress";
     public static final int HOST_PORT = 8988;
-    public static final int SOCKET_TIMEOUT = 5000;
+    public static final int SOCKET_TIMEOUT = 20000;
 
     public static final String SEND_FILE_ACTION = "send_file_action";
     public static final String RECEIVE_FILE_ACTION = "receive_file_action";
@@ -38,8 +45,8 @@ public class JoinGroupService extends IntentService {
     private boolean running;
     private Socket socket;
 
-    private PrintWriter out;
-    private BufferedReader in;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
 
     public JoinGroupService() {
         super("JoinGroupService");
@@ -64,7 +71,6 @@ public class JoinGroupService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Context context = getApplicationContext();
 
         String hostDeviceAddress = intent.getExtras().getString(HOST_DEVICE_ADDRESS);
 
@@ -75,14 +81,15 @@ public class JoinGroupService extends IntentService {
             socket.bind(null);
             socket.connect((new InetSocketAddress(hostDeviceAddress, HOST_PORT)), SOCKET_TIMEOUT);
 
-            out = new PrintWriter(socket.getOutputStream());
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
 
             // send my info
+            //PGPPublicKey pk = CryptoManager.getInstance().pk;
             SendInfoMessage message = new SendInfoMessage("My name", null);
-            String serializedMessage = message.toSerializedString();
-            out.write(serializedMessage);
+            message.writeToOutputStream(out);
             out.flush();
+
         } catch (IOException e) {
             Log.d(TAG, e.getLocalizedMessage(), e);
         } finally {
@@ -90,13 +97,12 @@ public class JoinGroupService extends IntentService {
         }
     }
 
-    public void sendFileToHost(InputStream is)
-    {
-        try {
-            OutputStream stream = socket.getOutputStream();
-            FileTransferAsyncTask.copyFile(is, stream);
-        } catch (IOException e) {
-
-        }
+    /**
+     * Sends a file byte array to the host
+     * @param fileByteArray
+     */
+    public void sendFileToHost(byte[] fileByteArray) {
+        SendFileMessage sendFileMessage = new SendFileMessage(fileByteArray);
+        sendFileMessage.writeToOutputStream(out);
     }
 }

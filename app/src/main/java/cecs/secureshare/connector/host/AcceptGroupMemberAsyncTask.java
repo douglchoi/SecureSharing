@@ -1,6 +1,5 @@
 package cecs.secureshare.connector.host;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -11,7 +10,7 @@ import java.net.Socket;
 import cecs.secureshare.GroupViewActivity;
 import cecs.secureshare.connector.client.JoinGroupService;
 import cecs.secureshare.groupmanagement.GroupManager;
-import cecs.secureshare.groupmanagement.GroupMember;
+
 
 /**
  * An async task that creates a server socket and accepts multiple clients.

@@ -5,9 +5,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.DataSetObserver;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -17,15 +18,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +28,6 @@ import java.util.Collection;
 import cecs.secureshare.adapters.GroupMemberListAdapter;
 import cecs.secureshare.connector.BroadcastReceiveListener;
 import cecs.secureshare.connector.WiFiDirectBroadcastReceiver;
-import cecs.secureshare.connector.client.FileTransferService;
 import cecs.secureshare.connector.client.JoinGroupService;
 import cecs.secureshare.connector.host.AcceptGroupMemberAsyncTask;
 import cecs.secureshare.groupmanagement.GroupManager;
@@ -49,7 +43,9 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
 
     private static final int SEND_FILE_REQUEST = 2;
 
-    private SendFileFragment sendFileFragment;
+    public static final String EXTRAS_IS_HOST = "isHost";
+    public static final String EXTRAS_DEVICE_ADDRESS = "deviceAddress";
+
     private GroupMemberListAdapter mGroupMemberListAdapter;
 
     // Wifi components
@@ -78,11 +74,34 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
         shareFileButton.setOnClickListener(this);
         disconnectButton.setOnClickListener(this);
 
-        // Popup for sending files
-        sendFileFragment = (SendFileFragment) getFragmentManager().findFragmentById(R.id.fragment_send_file);
-        sendFileFragment.getView().setVisibility(View.GONE);
-
         initiateWifiDirect();
+
+        // Perform this if this is the client
+        if (getIntent().getExtras() != null) { // connect to the device
+            boolean isHost = getIntent().getExtras().getBoolean(EXTRAS_IS_HOST);
+            if (!isHost) {
+                String deviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
+
+                WifiP2pConfig config = new WifiP2pConfig();
+                config.deviceAddress = deviceAddress;
+                config.wps.setup = WpsInfo.PBC;
+                config.groupOwnerIntent = 0;
+
+                mWifiManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        // The devices are connected
+                    }
+
+                    @Override
+                    public void onFailure(int reason) {
+                        Toast.makeText(GroupViewActivity.this, "Failed to connect [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }
+
+
     }
 
     /**
@@ -146,6 +165,7 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
             }
 
             NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+            int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
 
             if (networkInfo.isConnected()) {
                 mWifiManager.requestConnectionInfo(mChannel, this);
@@ -169,7 +189,7 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
             // One common case is creating a server thread and accepting
             // incoming connections.
             new AcceptGroupMemberAsyncTask(this).execute();
-            Toast.makeText(GroupViewActivity.this, "Host accepted connection... Need to accept a server thread.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(GroupViewActivity.this, "Host accepted connection.", Toast.LENGTH_SHORT).show();
         } else if (info.groupFormed) {
             // The other device acts as the client. In this case,
             // you'll want to create a client thread that connects to the group
@@ -177,7 +197,7 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
             Intent serviceIntent = new Intent(this, JoinGroupService.class);
             serviceIntent.putExtra(JoinGroupService.HOST_DEVICE_ADDRESS, groupOwnerAddress);
             startService(serviceIntent);
-            Toast.makeText(GroupViewActivity.this, "Client connected... Need to make a thread to connect to the group owner", Toast.LENGTH_SHORT).show();
+            Toast.makeText(GroupViewActivity.this, "Client connected.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -215,27 +235,20 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
                 //       2. send file to host?
 
                 try {
-                InputStream fis;
-                ContentResolver cr = getContentResolver();
-                fis = cr.openInputStream(imageUri);
-                /*ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                byte[] buf = new byte[1024];
-                    int totalBytes = 0;
-                    for (int readNum; (readNum = fis.read(buf)) != -1;) {
-                        bos.write(buf, 0, readNum);
-                        totalBytes += readNum;
-                    }
-                byte[] bytes = bos.toByteArray();*/
-                CryptoManager cryptManager = new CryptoManager();
-                ByteArrayOutputStream cipherText = cryptManager.Encrypt(fis, "uniqueId");
-                    ByteArrayInputStream is = new ByteArrayInputStream(cipherText.toByteArray());
-                    PeerInfo.getInstance().getCurrentConn().sendFileToHost(is);
-                Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                Log.d(e.getMessage(), e.getLocalizedMessage(), e);
-            }
+                    // open the file as input stream
+                    ContentResolver cr = getContentResolver();
+                    InputStream fis = cr.openInputStream(imageUri);
 
-        }
+                    // encrypt the file
+                    CryptoManager cryptManager = new CryptoManager();
+                    ByteArrayOutputStream cipherText = cryptManager.Encrypt(fis, "uniqueId");
+                    PeerInfo.getInstance().getCurrentConn().sendFileToHost(cipherText.toByteArray());
+
+                    Toast.makeText(GroupViewActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Log.d(e.getMessage(), e.getLocalizedMessage(), e);
+                }
+            }
         }
     }
 
@@ -253,7 +266,6 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
      * Disable all the buttons
      */
     public void disableFileSharing() {
-        sendFileFragment.getView().setVisibility(View.GONE);
         disconnectButton.setEnabled(false);
         shareFileButton.setEnabled(false);
     }

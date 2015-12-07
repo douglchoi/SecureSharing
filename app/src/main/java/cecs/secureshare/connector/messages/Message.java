@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 
 /**
@@ -31,33 +32,44 @@ public abstract class Message implements Serializable {
     }
 
     /**
-     * Converts this object to a serialized string
-     * @return
+     * Writes this message as serialized to output stream
+     * @param oos
      */
-    public String toSerializedString() {
-            try {
-                ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                ObjectOutputStream so = new ObjectOutputStream(bo);
-                so.writeObject(this);
-                so.flush();
-                return bo.toString();
-            } catch (IOException e) {
-                Log.d(TAG, e.getLocalizedMessage(), e);
-                return null;
-            }
+    public boolean writeToOutputStream(ObjectOutputStream oos) {
+        try {
+            oos.writeObject(this);
+            oos.flush();
+            return true;
+        } catch(IOException e) {
+            Log.d(TAG, e.getLocalizedMessage(), e);
+            return false;
+        }
     }
 
     /**
-     * Deserialize a string into a object that is castable to some Message subclass
-     * @param serialized
+     * Reads the input stream as serialized Message object
+     * @param ois
      * @return
      */
-    public static <T> T deserialize(String serialized, Class<T> clazz) {
+    public static Message readInputStream(ObjectInputStream ois) {
+         try {
+             return (Message) ois.readObject();
+         } catch (IOException | ClassNotFoundException e) {
+             Log.d(TAG, e.getLocalizedMessage(), e);
+             return null;
+         }
+    }
+
+    /**
+     * Reads input stream and returns object
+     * @param ois
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    public static <T> T readInputStream(ObjectInputStream ois, Class<T> clazz) {
         try {
-            byte b[] = serialized.getBytes();
-            ByteArrayInputStream bi = new ByteArrayInputStream(b);
-            ObjectInputStream si = new ObjectInputStream(bi);
-            return clazz.cast(si.readObject());
+            return clazz.cast(ois.readObject());
         } catch (IOException | ClassNotFoundException e) {
             Log.d(TAG, e.getLocalizedMessage(), e);
             return null;

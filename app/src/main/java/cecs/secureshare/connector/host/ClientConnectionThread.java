@@ -2,17 +2,23 @@ package cecs.secureshare.connector.host;
 
 import android.util.Log;
 
+import org.spongycastle.openpgp.PGPPublicKey;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.acl.Group;
 
 import cecs.secureshare.GroupViewActivity;
+import cecs.secureshare.SendFileFragment;
 import cecs.secureshare.connector.messages.Message;
+import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
 import cecs.secureshare.groupmanagement.GroupManager;
 import cecs.secureshare.groupmanagement.GroupMember;
@@ -32,8 +38,8 @@ public class ClientConnectionThread extends Thread {
     private ServerSocket serverSocket;
     private GroupViewActivity groupViewActivity;
 
-    private PrintWriter out = null;
-    private BufferedReader in = null;
+    private ObjectOutputStream out = null;
+    private ObjectInputStream in = null;
 
     /**
      * @param clientSocket
@@ -48,29 +54,54 @@ public class ClientConnectionThread extends Thread {
     @Override
     public void run() {
         try {
-            out = new PrintWriter(clientSocket.getOutputStream());
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            out = new ObjectOutputStream(clientSocket.getOutputStream());
+            in = new ObjectInputStream(clientSocket.getInputStream());
 
-            // accept client information
-            String clientInfo = readFromClient();
-            SendInfoMessage sendInfoMessage = Message.deserialize(clientInfo, SendInfoMessage.class);
-
-            // add it to the global list of group members
-            GroupMember groupMember = new GroupMember(this);
-            groupMember.setName(clientInfo);
-            GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
-
-            // update the UI
-            groupViewActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    groupViewActivity.updateView();
-                }
-            });
 
             // all further messages
             while (running) {
+                // receive a message. This is blocking I/O
+                Message message = Message.readInputStream(in);
 
+                // determine action based on message type
+                switch (message.getAction()) {
+                    case SEND_INFO: // accept client information
+                        SendInfoMessage infoMessage = (SendInfoMessage) message;
+
+                        // add it to the global list of group members
+                        GroupMember groupMember = new GroupMember(this);
+                        groupMember.setName(infoMessage.getName());
+                        GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
+
+                        // update the UI
+                        groupViewActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                groupViewActivity.updateView();
+                            }
+                        });
+                        break;
+
+                    case SEND_FILE:
+                        // do something with received file... send it to all clients
+                        byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
+
+                        // TODO: decrypt the fileByteArray
+
+                        // loop through connected devices
+                        for (GroupMember otherMembers : GroupManager.getInstance().getGroupMembers().values()) {
+                            // don't send to file to myself
+                            if (otherMembers.getClientConn() != this) {
+                                byte[] encryptedFileByteArray = new byte[fileByteArray.length]; // TODO: encrypted fileByteArray with this member's public key
+                                PGPPublicKey publicKey = otherMembers.getPublicKey(); // TODO: this the group member's public key
+
+                                // sends the file
+                                otherMembers.getClientConn().sendFileToClient(encryptedFileByteArray);
+                            }
+                        }
+
+                        break;
+                }
             }
         } catch (IOException e) {
             Log.d(TAG, e.getLocalizedMessage(), e);
@@ -78,30 +109,12 @@ public class ClientConnectionThread extends Thread {
     }
 
     /**
-     * TODO: send a file to all peers in the group
+     * Sends file byte array to the connected peer
+     * @param fileByteArray
      */
-    public void sendFileToPeers() {
-
-
-    }
-    
-    /**
-     * This is a blocking I/O
-     * @return
-     */
-    private String readFromClient() {
-        try {
-            String message = "";
-            int charsRead = 0;
-            char[] buffer = new char[BUFFER_SIZE];
-            while ((charsRead = in.read(buffer)) != -1) {
-                message += new String(buffer).substring(0, charsRead);
-            }
-            return message;
-        } catch (IOException e) {
-            Log.d(TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
+    public void sendFileToClient(byte[] fileByteArray) {
+        SendFileMessage sendFileMessage = new SendFileMessage(fileByteArray);
+        sendFileMessage.writeToOutputStream(out);
     }
 
     public boolean isRunning() {

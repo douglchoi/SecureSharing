@@ -4,8 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.WpsInfo;
-import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -49,6 +47,7 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         // Attach the peer list to the ListView adapter
@@ -62,27 +61,10 @@ public class FindPeerActivity extends AppCompatActivity implements BroadcastRece
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // the selected device
                 final WifiP2pDevice device = (WifiP2pDevice) peerListView.getAdapter().getItem(position);
-
-                // create the connection configuration
-                WifiP2pConfig config = new WifiP2pConfig();
-                config.deviceAddress = device.deviceAddress;
-                config.wps.setup = WpsInfo.PBC;
-                config.groupOwnerIntent = 0;
-
-                // connect to the device
-                mWifiManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        // The devices are connected
-                        Intent intent = new Intent(getApplicationContext(), GroupViewActivity.class);
-                        startActivity(intent);
-                    }
-
-                    @Override
-                    public void onFailure ( int reason){
-                        Toast.makeText(FindPeerActivity.this, "Failed to connect to " + device.deviceName + " [Reason = " + reason + "]", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                Intent intent = new Intent(getApplicationContext(), GroupViewActivity.class);
+                intent.putExtra(GroupViewActivity.EXTRAS_IS_HOST, false);
+                intent.putExtra(GroupViewActivity.EXTRAS_DEVICE_ADDRESS, device.deviceAddress);
+                startActivity(intent);
             }
         });
 

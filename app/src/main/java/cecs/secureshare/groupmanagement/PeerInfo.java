@@ -8,6 +8,8 @@ import cecs.secureshare.connector.client.JoinGroupService;
  * Created by Harshal on 12/6/2015.
  */
 public class PeerInfo {
+
+
     private static PeerInfo ourInstance = new PeerInfo();
 
     public static PeerInfo getInstance() {

@@ -1,30 +1,14 @@
 package cecs.secureshare;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import org.spongycastle.openpgp.PGPKeyRingGenerator;
-import org.spongycastle.openpgp.PGPPublicKey;
-import org.spongycastle.openpgp.PGPPublicKeyRing;
-import org.spongycastle.openpgp.PGPSecretKey;
-import org.spongycastle.openpgp.PGPSecretKeyRing;
-import org.spongycastle.openpgp.operator.PBESecretKeyDecryptor;
-import org.spongycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.security.KeyPair;
-import java.util.Iterator;
-
 import cecs.secureshare.security.CryptoManager;
-import cecs.secureshare.security.PGPCipher;
-import cecs.secureshare.security.PGPKeyManager;
 
 /**
  * Entry point
@@ -38,14 +22,6 @@ public class MainActivity extends AppCompatActivity {
         CryptoManager.getInstance().initialize(true);
 
         setContentView(R.layout.activity_main);
-
-
-        /* Sample code to call encrypt, decrypt and access keys*/
-        CryptoManager cryptManager = new CryptoManager();
-        /*String secretString = "THIS IS SECRET";
-        ByteArrayOutputStream cipherText = cryptManager.Encrypt(new ByteArrayInputStream(secretString.getBytes()), "uniqueId");
-        ByteArrayOutputStream secret = cryptManager.Decrypt(cipherText, cryptManager.sk, cryptManager.pass);*/
-        /* End Sample */
 
 
         // Attach click listeners to main menu buttons

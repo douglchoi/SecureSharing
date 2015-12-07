@@ -12,6 +12,7 @@ import cecs.secureshare.connector.host.ClientConnectionThread;
 public class GroupMember {
 
     private String name;
+    private PGPPublicKey publicKey;
     private ClientConnectionThread clientConn;
 
     public GroupMember(ClientConnectionThread clientConn) {
@@ -32,5 +33,13 @@ public class GroupMember {
 
     public void setClientConn(ClientConnectionThread clientConn) {
         this.clientConn = clientConn;
+    }
+
+    public PGPPublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(PGPPublicKey publicKey) {
+        this.publicKey = publicKey;
     }
 }
