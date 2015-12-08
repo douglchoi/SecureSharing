@@ -11,20 +11,26 @@ import org.spongycastle.openpgp.PGPObjectFactory;
 import org.spongycastle.openpgp.PGPPublicKey;
 import org.spongycastle.openpgp.PGPPublicKeyEncryptedData;
 import org.spongycastle.openpgp.PGPPublicKeyRing;
-import org.spongycastle.openpgp.PGPPublicKeyRingCollection;
 import org.spongycastle.openpgp.PGPSecretKey;
+import org.spongycastle.openpgp.PGPSignature;
+import org.spongycastle.openpgp.PGPSignatureGenerator;
+import org.spongycastle.openpgp.PGPSignatureList;
 import org.spongycastle.openpgp.PGPUtil;
 import org.spongycastle.openpgp.bc.BcPGPObjectFactory;
-import org.spongycastle.openpgp.jcajce.JcaPGPPublicKeyRingCollection;
 import org.spongycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.spongycastle.openpgp.operator.PGPDataEncryptorBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.spongycastle.openpgp.operator.bc.BcPGPDataEncryptorBuilder;
+import org.spongycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.spongycastle.openpgp.operator.bc.BcPublicKeyDataDecryptorFactory;
 import org.spongycastle.openpgp.operator.bc.BcPublicKeyKeyEncryptionMethodGenerator;
 import org.spongycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.spongycastle.util.test.UncloseableOutputStream;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,22 +45,24 @@ import java.util.Iterator;
 public class CryptoManager {
 
     private PGPPublicKey publicKey;
+    private PGPPublicKey signingPublicKey;
     private PGPSecretKey secretKey;
+    private PGPSecretKey signingSecretKey;
     private PGPPublicKeyRing publicKeyRing;
 
     private String uniqueId;    // TODO: how do we set this?
     private char[] password;
     public static final String TAG = "CryptoLog";
 
+    private static final int SIG_LENGTH = 287;
     private static CryptoManager instance = new CryptoManager();
 
     private CryptoManager() {}
 
     /**
      * Initialization sets BouncyCastle as the security provider, and fetches master keys.
-     * @param refreshKeys - deletes existing keys if true
      */
-    public void initialize(boolean refreshKeys) {
+    public void initialize() {
         try {
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
         } catch (Exception e) {
@@ -69,43 +77,29 @@ public class CryptoManager {
         publicKeyRing = keyPair.getPublicKeyRing();
 
         Iterator<PGPPublicKey> pkIt = publicKeyRing.getPublicKeys();
-        PGPPublicKey signingPk = pkIt.next();
-        PGPPublicKey encPk = pkIt.next();
-        publicKey = encPk;
+        signingPublicKey = pkIt.next();
+        publicKey = pkIt.next();
 
         Iterator<PGPSecretKey> skIt = keyPair.getSecretKeyRing().getSecretKeys();
-        PGPSecretKey signingSk = skIt.next();
-        PGPSecretKey encSk = skIt.next();
-        secretKey = encSk;
+        signingSecretKey = skIt.next();
+        secretKey = skIt.next();
+
+        // Testing...
+        /*ByteArrayOutputStream out = new ByteArrayOutputStream();
+        encrypt(new ByteArrayInputStream("test".getBytes()), out, publicKey);
+        String encrypted = new String(out.toByteArray());
+        ByteArrayOutputStream original = new ByteArrayOutputStream();
+        decrypt(new ByteArrayInputStream(out.toByteArray()), original, secretKey, signingPublicKey);
+        String originalText = new String(original.toByteArray());*/
     }
 
     /**
-     * Extracts an encryption public key from encoded key ring
+     * Extracts an encryption and signing public key from encoded key ring
      * @param encodedPublicKeyRing
      * @return
      */
-    public static PGPPublicKey extractPublicKey(byte[] encodedPublicKeyRing) {
-        try {
-            InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(encodedPublicKeyRing));
-            PGPPublicKeyRingCollection pgpPub = new JcaPGPPublicKeyRingCollection(in);
-            PGPPublicKey key = null;
-            Iterator rIt = pgpPub.getKeyRings();
-            while (key == null && rIt.hasNext()) {
-                PGPPublicKeyRing kRing = (PGPPublicKeyRing) rIt.next();
-
-                Iterator kIt = kRing.getPublicKeys();
-                while (key == null && kIt.hasNext()) {
-                    PGPPublicKey k = (PGPPublicKey) kIt.next();
-                    if (k.isEncryptionKey()) {
-                        key = k;
-                    }
-                }
-            }
-            return key;
-        } catch (IOException | PGPException e) {
-            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
-            return null;
-        }
+    public static PGPEncryptSigningPublicKey extractPublicKey(byte[] encodedPublicKeyRing) {
+        return new PGPEncryptSigningPublicKey(encodedPublicKeyRing);
     }
 
     /**
@@ -148,14 +142,29 @@ public class CryptoManager {
      */
     public void encrypt(InputStream in, OutputStream out, PGPPublicKey publicKey, boolean integrityCheck) {
         try {
+            // Encrypt
             byte[] inBytes = IOUtils.toByteArray(in);
             PGPDataEncryptorBuilder encBuilder = new BcPGPDataEncryptorBuilder(PGPEncryptedData.AES_256).setWithIntegrityPacket(integrityCheck);
             PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(encBuilder);
             encGen.addMethod(new BcPublicKeyKeyEncryptionMethodGenerator(publicKey));
 
-            OutputStream encOut = encGen.open(new UncloseableOutputStream(out), inBytes.length);
+            ByteArrayOutputStream cipherTextOut = new ByteArrayOutputStream();
+            OutputStream encOut = encGen.open(new UncloseableOutputStream(cipherTextOut), inBytes.length);
             encOut.write(inBytes);
             encOut.close();
+            byte[] cipherText = cipherTextOut.toByteArray();
+
+            // Then, create signature
+            PGPSignatureGenerator sigGen = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(signingPublicKey.getAlgorithm(), PGPUtil.SHA256));
+            PBESecretKeyDecryptor decryptor = new JcePBESecretKeyDecryptorBuilder().build(password);
+            sigGen.init(PGPSignature.BINARY_DOCUMENT, signingSecretKey.extractPrivateKey(decryptor));
+            sigGen.update(cipherText);
+            PGPSignature signature = sigGen.generate();
+            byte[] encodedSig = signature.getEncoded();
+
+            // output signature || cipher text
+            out.write(encodedSig);
+            out.write(cipherText);
         } catch (PGPException e) {
             Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
         } catch (IOException e) {
@@ -168,22 +177,50 @@ public class CryptoManager {
      * @param in (cipher text)
      * @param out (plain text)
      * @param secretKey
+     * @param signingPublicKey - public key of the encryptor required for verifying
      */
-    public void decrypt(InputStream in, OutputStream out, PGPSecretKey secretKey) {
+    public void decrypt(InputStream in, OutputStream out, PGPSecretKey secretKey, PGPPublicKey signingPublicKey) {
         try {
-            PGPObjectFactory pgpFactory = new BcPGPObjectFactory(in);
-            PGPEncryptedDataList encList = (PGPEncryptedDataList) pgpFactory.nextObject();
-            PGPPublicKeyEncryptedData encP = (PGPPublicKeyEncryptedData) encList.get(0);
-            PBESecretKeyDecryptor decryptor = new JcePBESecretKeyDecryptorBuilder().build(password);
+            // Get the signature and verify
+            byte[] signatureBytes = new byte[SIG_LENGTH];
+            in.read(signatureBytes, 0, SIG_LENGTH);
+            InputStream sigIn = PGPUtil.getDecoderStream(new ByteArrayInputStream(signatureBytes));
+            PGPObjectFactory fact = new BcPGPObjectFactory(sigIn);
+            PGPSignatureList sigList = (PGPSignatureList) fact.nextObject();
+            PGPSignature signature = sigList.get(0);
 
-            InputStream encIn = encP.getDataStream(new BcPublicKeyDataDecryptorFactory(secretKey.extractPrivateKey(decryptor)));
-            int ch;
-            while ((ch = encIn.read()) >= 0) {
-                out.write(ch);
+            // get the cipher text
+            ByteArrayOutputStream cipherTextOut = new ByteArrayOutputStream();
+            int sh;
+            while((sh = in.read()) >= 0) {
+                cipherTextOut.write(sh);
+            }
+            byte[] cipherText = cipherTextOut.toByteArray();
+            cipherTextOut.close();
+
+            // verify
+            signature.init(new BcPGPContentVerifierBuilderProvider(), signingPublicKey);
+            signature.update(cipherText);
+            boolean isVerify = signature.verify();
+
+            if (isVerify) {
+                // Decrypt
+                PGPObjectFactory pgpFactory = new BcPGPObjectFactory(cipherText);
+                PGPEncryptedDataList encList = (PGPEncryptedDataList) pgpFactory.nextObject();
+                PGPPublicKeyEncryptedData encP = (PGPPublicKeyEncryptedData) encList.get(0);
+                PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password);
+
+                InputStream encIn = encP.getDataStream(new BcPublicKeyDataDecryptorFactory(secretKey.extractPrivateKey(decryptor)));
+                int ch;
+                while ((ch = encIn.read()) >= 0) {
+                    out.write(ch);
+                }
             }
         } catch (PGPException e) {
             Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
         } catch (IOException e) {
+            Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
+        } catch (Exception e) {
             Log.d(CryptoManager.TAG, e.getLocalizedMessage(), e);
         }
     }

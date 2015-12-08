@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        CryptoManager.getInstance().initialize(true);
+        CryptoManager.getInstance().initialize();
 
         setContentView(R.layout.activity_main);
 

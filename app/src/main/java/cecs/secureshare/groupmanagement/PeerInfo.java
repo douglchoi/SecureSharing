@@ -1,13 +1,13 @@
 package cecs.secureshare.groupmanagement;
 
 import org.spongycastle.openpgp.PGPPublicKey;
-import org.spongycastle.openpgp.PGPPublicKeyRing;
 
 import cecs.secureshare.connector.client.JoinGroupService;
 import cecs.secureshare.security.CryptoManager;
+import cecs.secureshare.security.PGPEncryptSigningPublicKey;
 
 /**
- * This object contains the information abeout the client and the reference to the service
+ * This object contains the information about the client and the reference to the service
  * object holding the socket connection to th host.
  * Created by Harshal on 12/6/2015.
  */
@@ -20,6 +20,7 @@ public class PeerInfo {
     }
 
     private PGPPublicKey hostPublicKey;
+    private PGPPublicKey hostSigningPublicKey;
     private JoinGroupService currentConn;
 
     private PeerInfo() { }
@@ -36,11 +37,17 @@ public class PeerInfo {
         return hostPublicKey;
     }
 
-    public void setHostPublicKey(PGPPublicKey hostPublicKey) {
-        this.hostPublicKey = hostPublicKey;
+    /**
+     * Sets the host public keys
+     * @param encodedHostPublicKeyRing
+     */
+    public void setHostPublicKeys(byte[] encodedHostPublicKeyRing) {
+        PGPEncryptSigningPublicKey keys = CryptoManager.extractPublicKey(encodedHostPublicKeyRing);
+        hostPublicKey = keys.getEncryptKey();
+        hostSigningPublicKey = keys.getSigningKey();
     }
 
-    public void setHostPublicKey(byte[] encodedHostPublicKeyRing) {
-        this.hostPublicKey = CryptoManager.extractPublicKey(encodedHostPublicKeyRing);
+    public PGPPublicKey getHostSigningPublicKey() {
+        return hostSigningPublicKey;
     }
 }

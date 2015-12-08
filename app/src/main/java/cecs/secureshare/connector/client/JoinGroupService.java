@@ -3,17 +3,12 @@ package cecs.secureshare.connector.client;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
 import android.util.Log;
-
-import org.spongycastle.openpgp.PGPPublicKey;
+import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
@@ -23,8 +18,6 @@ import cecs.secureshare.connector.FileWriter;
 import cecs.secureshare.connector.messages.Message;
 import cecs.secureshare.connector.messages.SendFileMessage;
 import cecs.secureshare.connector.messages.SendInfoMessage;
-import cecs.secureshare.groupmanagement.GroupManager;
-import cecs.secureshare.groupmanagement.GroupMember;
 import cecs.secureshare.groupmanagement.PeerInfo;
 import cecs.secureshare.security.CryptoManager;
 
@@ -103,7 +96,7 @@ public class JoinGroupService extends IntentService {
                     case SEND_INFO: // accept host information
                         SendInfoMessage infoMessage = (SendInfoMessage) message;
                         // set the public key from the host
-                        PeerInfo.getInstance().setHostPublicKey(infoMessage.getEncodedPublicKeyRing());
+                        PeerInfo.getInstance().setHostPublicKeys(infoMessage.getEncodedPublicKeyRing());
                         break;
 
                     case SEND_FILE:
@@ -111,10 +104,17 @@ public class JoinGroupService extends IntentService {
                         byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
                         // decrypt with secret key
                         ByteArrayOutputStream decrypted = new ByteArrayOutputStream();
-                        CryptoManager.getInstance().decrypt(new ByteArrayInputStream(fileByteArray), decrypted, CryptoManager.getInstance().getSecretKey());
+                        CryptoManager.getInstance().decrypt(
+                                new ByteArrayInputStream(fileByteArray),
+                                decrypted,
+                                CryptoManager.getInstance().getSecretKey(),
+                                PeerInfo.getInstance().getHostSigningPublicKey());
+
                         // save to directory
                         FileWriter.writeFile(context, new ByteArrayInputStream(fileByteArray));  // for demo, also write the encrypted file
                         FileWriter.writeFile(context, new ByteArrayInputStream(decrypted.toByteArray())); // this is the actual decrypted file
+
+                        Toast.makeText(context, "File received!", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }

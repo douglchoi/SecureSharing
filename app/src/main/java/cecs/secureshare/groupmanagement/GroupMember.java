@@ -4,6 +4,7 @@ import org.spongycastle.openpgp.PGPPublicKey;
 
 import cecs.secureshare.connector.host.ClientConnectionThread;
 import cecs.secureshare.security.CryptoManager;
+import cecs.secureshare.security.PGPEncryptSigningPublicKey;
 
 /**
  * Created by Douglas on 12/3/2015.
@@ -12,6 +13,7 @@ public class GroupMember {
 
     private String name;
     private PGPPublicKey publicKey;
+    private PGPPublicKey signingPublicKey;
     private ClientConnectionThread clientConn;
 
     /**
@@ -20,7 +22,9 @@ public class GroupMember {
      */
     public GroupMember(ClientConnectionThread clientConn, byte[] encodedPublicKeyRing) {
         this.clientConn = clientConn;
-        publicKey = CryptoManager.extractPublicKey(encodedPublicKeyRing);
+        PGPEncryptSigningPublicKey keys = CryptoManager.extractPublicKey(encodedPublicKeyRing);
+        publicKey = keys.getEncryptKey();
+        signingPublicKey = keys.getSigningKey();
     }
 
     public String getName() {
@@ -45,5 +49,9 @@ public class GroupMember {
 
     public void setPublicKey(PGPPublicKey publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public PGPPublicKey getSigningPublicKey() {
+        return signingPublicKey;
     }
 }

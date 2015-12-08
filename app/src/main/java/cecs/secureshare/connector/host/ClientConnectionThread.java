@@ -2,8 +2,6 @@ package cecs.secureshare.connector.host;
 
 import android.util.Log;
 
-import org.spongycastle.openpgp.PGPPublicKey;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.KeyFactory;
 
 import cecs.secureshare.GroupViewActivity;
 import cecs.secureshare.connector.FileWriter;
@@ -34,6 +31,7 @@ public class ClientConnectionThread extends Thread {
     private Socket clientSocket;
     private ServerSocket serverSocket;
     private GroupViewActivity groupViewActivity;
+    private GroupMember groupMember;
 
     private ObjectOutputStream out = null;
     private ObjectInputStream in = null;
@@ -66,7 +64,7 @@ public class ClientConnectionThread extends Thread {
                         SendInfoMessage infoMessage = (SendInfoMessage) message;
 
                         // add it to the global list of group members
-                        GroupMember groupMember = new GroupMember(this, infoMessage.getEncodedPublicKeyRing());
+                        this.groupMember = new GroupMember(this, infoMessage.getEncodedPublicKeyRing());
                         groupMember.setName(infoMessage.getName());
 
                         GroupManager.getInstance().addGroupMember(clientSocket.getInetAddress().toString(), groupMember);
@@ -88,9 +86,14 @@ public class ClientConnectionThread extends Thread {
                     case SEND_FILE:
                         // do something with received file... send it to all clients
                         byte[] fileByteArray = ((SendFileMessage) message).getFileByteArray();
+
                         // decrypt with host's key
                         ByteArrayOutputStream decrypted = new ByteArrayOutputStream();
-                        CryptoManager.getInstance().decrypt(new ByteArrayInputStream(fileByteArray), decrypted, CryptoManager.getInstance().getSecretKey());
+                        CryptoManager.getInstance().decrypt(
+                                new ByteArrayInputStream(fileByteArray),
+                                decrypted,
+                                CryptoManager.getInstance().getSecretKey(),
+                                groupMember.getSigningPublicKey());
 
                         // just keep a copy on the host device
                         FileWriter.writeFile(groupViewActivity.getApplicationContext(), new ByteArrayInputStream(fileByteArray)); // for demo, also write the encrypted file
