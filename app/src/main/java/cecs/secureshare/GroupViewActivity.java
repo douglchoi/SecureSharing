@@ -62,6 +62,8 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
     private Button shareFileButton;
     private Button disconnectButton;
 
+    private AcceptGroupMemberAsyncTask acceptGroupMemberAsyncTask = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -195,7 +197,10 @@ public class GroupViewActivity extends AppCompatActivity implements BroadcastRec
             // Do whatever tasks are specific to the group owner.
             // One common case is creating a server thread and accepting
             // incoming connections.
-            new AcceptGroupMemberAsyncTask(this).execute();
+            if (acceptGroupMemberAsyncTask == null) {
+                acceptGroupMemberAsyncTask = new AcceptGroupMemberAsyncTask(this);
+                acceptGroupMemberAsyncTask.execute();
+            }
             Toast.makeText(GroupViewActivity.this, "Host accepted connection.", Toast.LENGTH_SHORT).show();
         } else if (info.groupFormed) {
             // The other device acts as the client. In this case,
